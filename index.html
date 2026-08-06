@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>St. Luke SVdP Conference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-index">
+  <div class="container">
+    <div class="header">
+      <div class="header-card">
+        <img src="https://www.stluke.org/images/template/logo-header.svg" alt="St. Luke Catholic Church" class="site-logo" />
+        <div class="header-eyebrow">Society of St. Vincent de Paul &middot; St. Luke Conference</div>
+        <h1 class="header-title">Love thy Neighbor</h1>
+        <details class="mission-details" id="mission-details">
+          <summary class="mission-summary">What We Do</summary>
+          <p class="header-sub">St. Luke's Vincentians visit families in their homes, listening to their struggles and offering humble advice and assistance within our means. We also lead several annual parish SVdP drives and support our sister conferences.</p>
+        </details>
+      </div>
+    </div>
+    <script>
+      // Full mission shows automatically on someone's very first visit; every
+      // visit after that it starts collapsed into "What We Do ▸" above,
+      // still one tap away. Wrapped in try/catch since some private-browsing
+      // modes block localStorage entirely — falls back to "always expanded"
+      // if so, which is a safe default either way.
+      (function () {
+        var el = document.getElementById('mission-details');
+        if (!el) return;
+        try {
+          if (!localStorage.getItem('svdp_visited')) {
+            el.setAttribute('open', '');
+            localStorage.setItem('svdp_visited', '1');
+          }
+        } catch (e) {
+          el.setAttribute('open', '');
+        }
+      })();
+    </script>
+
+    <!-- ===== Needs Bulletin Board (preview) ===== -->
+    <div class="section">
+      <div class="glance-card">
+        <div class="fund-label">This Month, At a Glance</div>
+        <div class="snapshot-sentence" id="snapshot-sentence"></div>
+        <a href="#" class="fund-give-btn" id="fund-give-btn" target="_blank" rel="noopener">Give to SVdP &rarr;</a>
+        <p class="thank-you-note">Thank you for your compassion and generosity.</p>
+        <details class="giving-details">
+          <summary>How does giving work?</summary>
+          <p>Gifts go into one shared SVdP fund on the parish giving site — there's no way to earmark a gift to a single family. Vincentians update the snapshot behind this by hand periodically, so it may lag a few days behind your giving.</p>
+        </details>
+      </div>
+      <div class="section-label board-label">Needs Bulletin Board</div>
+      <div class="preview-board" id="preview-board"></div>
+      <div class="board-cta"><a href="board.html">View the full board &rarr;</a></div>
+    </div>
+
+    <!-- ===== Next Parish Drive ===== -->
+    <div class="section">
+      <div class="section-label">Our Next SVdP Parish Drive</div>
+      <div class="drive-card">
+        <div class="drive-eyebrow">Now Collecting</div>
+        <h2 class="drive-title">Blanket Drive</h2>
+        <p class="drive-sub">Our next drive is to collect blankets in September. Watch the bulletin for details.</p>
+      </div>
+    </div>
+
+    <!-- ===== Home Visit Results ===== -->
+    <div class="section">
+      <div class="section-label">Home Visit Results</div>
+      <div class="table-card">
+        <table>
+          <thead id="results-head"></thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 2026 Campaigns ===== -->
+    <div class="section">
+      <div class="section-label">2026 SVdP Parish Campaigns</div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Campaign</th><th>When</th><th>Results</th></tr></thead>
+          <tbody>
+            <tr><td>40 Days for 40 Beds</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td>Kitchen Drive</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr><td>Blanket Drive</td><td>September 2026</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== Sister Conferences ===== -->
+    <div class="section">
+      <div class="section-label">Supporting Our Sister Conferences</div>
+      <div class="sisters">
+        <div class="sister-card">
+          <div class="sister-name">St. Rita</div>
+          <p class="sister-blurb">Details on how St. Luke supports the St. Rita conference go here.</p>
+        </div>
+        <div class="sister-card">
+          <div class="sister-name">Jamaica</div>
+          <p class="sister-blurb">Details on how St. Luke supports our sister conference in Jamaica go here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Volunteer CTA ===== -->
+    <div class="section">
+      <div class="volunteer-card">
+        <h2 class="volunteer-title">Become a Volunteer</h2>
+        <p class="volunteer-sub">Join our Vincentians in serving our St. Luke neighbors with dignity and love.</p>
+        <a href="volunteer.html" class="volunteer-btn">Get Involved &rarr;</a>
+      </div>
+    </div>
+
+    <div class="footer-note">St. Luke Catholic Church &middot; St. Vincent de Paul Society &middot; Updated after every home visit &middot; Thank you for being here</div>
+  </div>
+
+  <div class="toast" id="toast">Thank you. Someone from SVdP will reach out with next steps.</div>
+
+<script src="site.js"></script>
+<script>
+  const ROTATIONS = [-2, 1.5, -1];
+  let claimed = new Set();
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function claimNeed(need) {
+    claimed.add(need.id);
+    renderPreview(NEEDS_CACHE);
+    toast("Opening an email to notify SVdP — please hit send to complete your claim.");
+
+    const subject = `SVdP Needs Board: I can help with "${need.title}"`;
+    const body =
+`Hi,
+
+I'd like to help with this need from the St. Luke SVdP Needs Board:
+
+Item: ${need.title}
+Details: ${need.detail || ''}
+
+My name:
+Best way to reach me:
+
+Thank you!`;
+    const mailto = `mailto:${CLAIM_NOTIFY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+  }
+
+  function renderStatusCard(need) {
+    const status = (need.status || 'Open');
+    const color = statusColor(status);
+    const isCovered = status.toLowerCase() === 'covered';
+    const card = document.createElement('div');
+    card.className = 'card' + (isCovered ? ' covered' : '');
+    card.innerHTML = `
+      <div class="stamp" style="color:${color};border-color:${color};">${status.toUpperCase()}</div>
+      <div>
+        <div class="status-badge" style="background:${color};">${status}</div>
+        <h3 class="card-title">${need.title || ''}</h3>
+        <p class="card-detail">${need.detail || ''}</p>
+        ${need.amount ? `<p class="amount-note">Approx. $${need.amount} — from the shared SVdP fund</p>` : ''}
+      </div>
+    `;
+    return card;
+  }
+
+  function renderClaimCard(need) {
+    const sheetCovered = (need.status || '').toLowerCase() === 'covered';
+    const isClaimed = claimed.has(need.id) || sheetCovered;
+    const color = statusColor(need.status);
+    const card = document.createElement('div');
+    card.className = 'card' + (isClaimed ? ' claimed' : '');
+    card.innerHTML = `
+      <div class="stamp" style="color:${sheetCovered ? color : 'var(--sage)'};border-color:${sheetCovered ? color : 'var(--sage)'};${isClaimed ? '' : 'display:none;'}">${sheetCovered ? 'COVERED' : 'CLAIMED'}</div>
+      <div>
+        <div class="status-badge" style="background:${color};">${need.status || 'Open'}</div>
+        <h3 class="card-title">${need.title || ''}</h3>
+        <p class="card-detail">${need.detail || ''}</p>
+      </div>
+      ${sheetCovered ? '' : `
+        <button class="card-btn ${isClaimed ? 'claimed-btn' : ''}" ${isClaimed ? 'disabled' : ''}>
+          ${isClaimed ? "Thank you — we'll follow up" : "I can help with this →"}
+        </button>
+      `}
+    `;
+    if (!isClaimed) card.querySelector('button').onclick = () => claimNeed(need);
+    return card;
+  }
+
+  function renderWarehouseCard(need) {
+    const status = (need.status || 'Open');
+    const color = statusColor(status);
+    const isCovered = status.toLowerCase() === 'covered';
+    const card = document.createElement('div');
+    card.className = 'card' + (isCovered ? ' covered' : '');
+    card.innerHTML = `
+      <div>
+        <div class="status-badge" style="background:${color};">${status}</div>
+        <h3 class="card-title">${need.title || ''}</h3>
+        <p class="card-detail">${need.detail || ''}</p>
+      </div>
+      <div class="warehouse-tag">SVdP Warehouse</div>
+    `;
+    return card;
+  }
+
+  let NEEDS_CACHE = [];
+
+  function renderPreview(allNeeds) {
+    NEEDS_CACHE = allNeeds;
+    const visible = visibleNeeds(allNeeds);
+    const sorted = sortForBoard(visible);
+
+    const el = document.getElementById('preview-board');
+    el.innerHTML = '';
+    sorted.slice(0, 3).forEach((need, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'card-wrap';
+      wrap.style.transform = `rotate(${ROTATIONS[i % ROTATIONS.length]}deg)`;
+
+      const pinColor = statusColor(need.status);
+      const pin = document.createElement('div');
+      pin.className = 'card-pin';
+      pin.style.background = `radial-gradient(circle at 35% 30%, #fff8 0%, ${pinColor} 40%, ${pinColor} 100%)`;
+
+      let card;
+      if (need.category === 'Furnishings') {
+        card = need.subtype === 'special' ? renderClaimCard(need) : renderWarehouseCard(need);
+      } else {
+        card = renderStatusCard(need);
+      }
+
+      wrap.appendChild(pin);
+      wrap.appendChild(card);
+      el.appendChild(wrap);
+    });
+  }
+
+  function renderResults(rows) {
+    const head = document.getElementById('results-head');
+    const body = document.getElementById('results-body');
+    head.innerHTML = '';
+    body.innerHTML = '';
+
+    // Assumes the sheet lists months chronologically ascending (June, July,
+    // August, ...) — reverse so the table reads most-recent-first.
+    const months = [...rows].reverse();
+
+    const METRICS = [
+      { key: 'home_visits', label: 'Home Visits' },
+      { key: 'people_helped', label: 'People Helped' },
+      { key: 'furniture_requests', label: 'Furniture / Home Requests' },
+      { key: 'rent_utility_requests', label: 'Rent / Utility Requests' },
+      { key: 'financial_assistance', label: 'Financial Assistance', money: true },
+    ];
+
+    const headRow = document.createElement('tr');
+    headRow.innerHTML = `<th>Metric</th><th>YTD</th>` + months.map(m => `<th>${formatMonthAbbrev(m.month)}</th>`).join('');
+    head.appendChild(headRow);
+
+    METRICS.forEach(metric => {
+      const values = months.map(m => toNumber(m[metric.key]));
+      const ytd = values.reduce((sum, v) => sum + v, 0);
+      const fmt = (n) => metric.money ? `$${n.toLocaleString()}` : n.toLocaleString();
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${metric.label}</td><td class="ytd-col">${fmt(ytd)}</td>` +
+        values.map(v => `<td>${fmt(v)}</td>`).join('');
+      body.appendChild(tr);
+    });
+  }
+
+  function renderGlance(needs, resultsRows, snapshotRows) {
+    const snap = latestSnapshot(snapshotRows);
+    const sentenceEl = document.getElementById('snapshot-sentence');
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(needs, resultsRows, snap);
+
+    const btn = document.getElementById('fund-give-btn');
+    if (btn) {
+      if (DONATE_URL) btn.href = DONATE_URL;
+      else { btn.removeAttribute('target'); btn.href = '#'; btn.onclick = (e) => e.preventDefault(); }
+    }
+  }
+
+  async function init() {
+    const needs = await loadNeeds();
+    const results = await loadResults();
+    renderPreview(needs);
+    renderResults(results);
+    renderGlance(needs, results, await loadBalanceSnapshots());
+  }
+  init();
+</script>
+</body>
+</html>

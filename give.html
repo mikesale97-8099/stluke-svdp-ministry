@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>St. Luke Catholic Church — Online Giving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .placeholder-banner {
+    background: #A8492E; color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
+    text-align: center; padding: 10px 16px; line-height: 1.5;
+  }
+  .give-wrap { max-width: 480px; margin: 0 auto; padding: 40px 20px 60px; }
+  .give-header { text-align: center; margin-bottom: 28px; }
+  .give-eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.25em; color: #9BB0DE; margin-bottom: 8px;
+  }
+  .give-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 26px; color: var(--paper); margin: 0; }
+
+  .give-card {
+    background: var(--paper); box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+    padding: 28px 26px;
+  }
+  .arrived-note {
+    background: rgba(37,64,142,0.08); border: 1px solid rgba(37,64,142,0.25);
+    padding: 12px 16px; margin-bottom: 24px; font-size: 13px; color: var(--ink); line-height: 1.5;
+  }
+  .arrived-note strong { color: var(--blue); }
+
+  .field-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--inktext); margin-bottom: 8px; display: block;
+  }
+
+  .fund-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .fund-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border: 1px solid var(--paperline); border-radius: 3px;
+    font-size: 14px; color: var(--ink); cursor: pointer;
+  }
+  .fund-option.selected {
+    border-color: var(--blue); background: rgba(37,64,142,0.06); font-weight: 600;
+  }
+  .fund-option input { accent-color: var(--blue); }
+
+  .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .amount-btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+    padding: 10px 0; background: transparent; border: 1px solid var(--paperline);
+    border-radius: 3px; color: var(--ink); cursor: pointer;
+  }
+  .amount-btn.selected { background: var(--blue); color: var(--paper); border-color: var(--blue); }
+  .custom-amount {
+    width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+    padding: 10px 12px; border: 1px solid var(--paperline); border-radius: 3px;
+    margin-bottom: 24px; color: var(--ink);
+  }
+
+  .recurring-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 24px;
+    font-size: 13px; color: var(--inktext);
+  }
+  .recurring-row input { accent-color: var(--blue); }
+
+  .continue-btn {
+    width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 15px;
+    padding: 13px 0; background: var(--blue); color: var(--paper);
+    border: none; border-radius: 3px; cursor: pointer;
+  }
+  .give-footnote {
+    text-align: center; font-size: 11px; color: var(--inktext); opacity: 0.75;
+    margin-top: 16px; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <div class="placeholder-banner">
+    PLACEHOLDER PAGE &mdash; not a real payment form. Swap this link for St. Luke's actual online giving platform once the SVdP designation is set up there.
+  </div>
+
+  <div class="give-wrap">
+    <div class="give-header">
+      <div class="give-eyebrow">St. Luke Catholic Church</div>
+      <h1 class="give-title">Online Giving</h1>
+    </div>
+
+    <div class="give-card">
+      <div class="arrived-note">
+        You arrived here to give to <strong>SVdP &mdash; Families in Need</strong>. That designation is pre-selected below.
+      </div>
+
+      <span class="field-label">Fund</span>
+      <div class="fund-options" id="fund-options">
+        <label class="fund-option"><input type="radio" name="fund" /> Offertory / Weekly Giving</label>
+        <label class="fund-option selected"><input type="radio" name="fund" checked /> SVdP &mdash; Families in Need</label>
+        <label class="fund-option"><input type="radio" name="fund" /> Building &amp; Maintenance Fund</label>
+        <label class="fund-option"><input type="radio" name="fund" /> Faith Formation / School</label>
+      </div>
+
+      <span class="field-label">Amount</span>
+      <div class="amount-grid" id="amount-grid">
+        <button type="button" class="amount-btn">$20</button>
+        <button type="button" class="amount-btn selected">$50</button>
+        <button type="button" class="amount-btn">$100</button>
+        <button type="button" class="amount-btn">$250</button>
+      </div>
+      <input type="text" class="custom-amount" placeholder="Or enter a custom amount" />
+
+      <label class="recurring-row">
+        <input type="checkbox" /> Make this a monthly recurring gift
+      </label>
+
+      <button type="button" class="continue-btn" id="continue-btn">Continue to Payment &rarr;</button>
+      <p class="give-footnote">This mockup does not process payments. In production this page belongs on St. Luke's real giving platform.</p>
+    </div>
+
+    <a href="board.html" class="back-btn" aria-label="Back to the Needs Board">&larr;</a>
+  </div>
+
+<script>
+  document.querySelectorAll('.fund-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.fund-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      opt.querySelector('input').checked = true;
+    });
+  });
+  document.querySelectorAll('.amount-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.querySelector('.custom-amount').value = '';
+    });
+  });
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    alert('This is a placeholder mockup — no payment will be processed. Replace this page with a link to St. Luke\'s real online giving platform.');
+  });
+</script>
+</body>
+</html>

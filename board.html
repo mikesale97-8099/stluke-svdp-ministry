@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>St. Luke SVdP Needs Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-board">
+  <div class="container">
+    <a href="index.html" class="back-btn" aria-label="Back to home">&larr;</a>
+
+    <div class="intro-card">
+      <h1 class="header-title">St. Luke <span class="title-accent">SVdP</span> Needs Board</h1>
+
+      <div class="legend-card">
+        <div class="legend-item">
+          <div class="legend-icon">&#127968;</div>
+          <div class="legend-text"><strong>Furnishings &amp; household items</strong> are usually filled through SVdP's central warehouse — no action needed from you. Once in a while a special item like a microwave or a high chair needs a parishioner's help — those cards have an <em>"I can help"</em> button.</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-icon">&#128176;</div>
+          <div class="legend-text"><strong>Rent &amp; utility needs</strong> are met through gifts to the shared SVdP fund. Any amount you can give is appreciated — even a few dollars makes a real difference. Use the button below to help.</div>
+        </div>
+      </div>
+
+      <a href="#" class="fund-give-btn" id="fund-give-btn" target="_blank" rel="noopener">Give to SVdP &rarr;</a>
+      <p class="thank-you-note">Thank you for your compassion and generosity.</p>
+      <details class="giving-details">
+        <summary>How does giving work?</summary>
+        <p>Gifts go into one shared SVdP fund on the parish giving site — there's no way to earmark a gift to a single family. Vincentians update the snapshot behind this by hand periodically, so it may lag a few days behind your giving.</p>
+      </details>
+    </div>
+
+    <div class="section-label board-label">Needs Bulletin Board</div>
+    <div class="filters" id="filters"></div>
+    <div class="board" id="board"></div>
+
+    <details class="served-archive">
+      <summary id="served-summary">Through your generosity, SVdP has made a difference in the lives of families at difficult times. Thank you!</summary>
+      <p class="served-note">No names, ever — just a record of the lives this parish has touched together, and the neighbors who still need our prayers.</p>
+      <div class="served-board" id="served-board"></div>
+    </details>
+
+    <div class="footer-note">Updated after every home visit &middot; St. Luke Catholic Church &middot; St. Vincent de Paul Society</div>
+  </div>
+
+  <div class="toast" id="toast">Thank you. Someone from SVdP will reach out with next steps.</div>
+
+<script src="site.js"></script>
+<script>
+  const CATEGORIES = ["All", "Furnishings", "Rent", "Utilities"];
+  const ROTATIONS = [-2, 1.5, -1, 2, -1.5, 1, -2, 2];
+
+  let NEEDS = [];
+  let claimed = new Set();
+  let filter = "All";
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function renderFilters() {
+    const el = document.getElementById('filters');
+    el.innerHTML = '';
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn' + (filter === cat ? ' active' : '');
+      btn.textContent = cat;
+      btn.onclick = () => { filter = cat; renderFilters(); renderBoard(); };
+      el.appendChild(btn);
+    });
+  }
+
+  function claimNeed(need) {
+    claimed.add(need.id);
+    renderBoard();
+    toast("Opening an email to notify SVdP — please hit send to complete your claim.");
+
+    const subject = `SVdP Needs Board: I can help with "${need.title}"`;
+    const body =
+`Hi,
+
+I'd like to help with this need from the St. Luke SVdP Needs Board:
+
+Item: ${need.title}
+Details: ${need.detail || ''}
+
+My name:
+Best way to reach me:
+
+Thank you!`;
+    const mailto = `mailto:${CLAIM_NOTIFY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+  }
+
+  function shareText(need) {
+    if (need.category === 'Furnishings') {
+      return `A neighbor near St. Luke needs a ${need.title.toLowerCase()}. Could you help? `;
+    }
+    return `A neighbor near St. Luke needs help with ${need.title.toLowerCase()} (about $${need.amount || '?'}). Gifts go to St. Luke's SVdP fund: `;
+  }
+
+  function makeShareLink(need) {
+    const a = document.createElement('a');
+    a.className = 'share-link';
+    a.href = '#';
+    a.textContent = 'Share this need →';
+    a.onclick = (e) => {
+      e.preventDefault();
+      const text = shareText(need) + window.location.href;
+      if (navigator.share) {
+        navigator.share({ text }).catch(() => {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+        toast('Share text copied — paste it to a friend.');
+      }
+    };
+    return a;
+  }
+
+  function renderStatusCard(need) {
+    const status = (need.status || 'Open');
+    const color = statusColor(status);
+    const isCovered = status.toLowerCase() === 'covered';
+    const card = document.createElement('div');
+    card.className = 'card' + (isCovered ? ' covered' : '');
+    card.innerHTML = `
+      <div class="stamp" style="color:${color};border-color:${color};">${status.toUpperCase()}</div>
+      <div>
+        <div class="status-badge" style="background:${color};">${status}</div>
+        <h3 class="card-title">${need.title || ''}</h3>
+        <p class="card-detail">${need.detail || ''}</p>
+        ${need.amount ? `<p class="amount-note">Approx. $${need.amount} — from the shared SVdP fund</p>` : ''}
+      </div>
+    `;
+    // Share link hidden for now, per request — keep makeShareLink() intact
+    // for when this gets revisited. card.appendChild(makeShareLink(need));
+    return card;
+  }
+
+  function renderClaimCard(need) {
+    // A Household item is "claimed" either locally (someone just clicked "I
+    // can help") or because the sheet already shows it Covered (i.e. the
+    // distribution center already fulfilled it).
+    const sheetCovered = (need.status || '').toLowerCase() === 'covered';
+    const isClaimed = claimed.has(need.id) || sheetCovered;
+    const color = statusColor(need.status);
+    const card = document.createElement('div');
+    card.className = 'card' + (isClaimed ? ' claimed' : '');
+    card.innerHTML = `
+      <div class="stamp" style="color:${sheetCovered ? color : 'var(--sage)'};border-color:${sheetCovered ? color : 'var(--sage)'};${isClaimed ? '' : 'display:none;'}">${sheetCovered ? 'COVERED' : 'CLAIMED'}</div>
+      <div>
+        <div class="status-badge" style="background:${color};">${need.status || 'Open'}</div>
+        <h3 class="card-title">${need.title || ''}</h3>
+        <p class="card-detail">${need.detail || ''}</p>
+      </div>
+      ${sheetCovered ? '' : `
+        <button class="card-btn ${isClaimed ? 'claimed-btn' : ''}" ${isClaimed ? 'disabled' : ''}>
+          ${isClaimed ? "Thank you — we'll follow up" : "I can help with this →"}
+        </button>
+      `}
+    `;
+    if (!isClaimed) card.querySelector('button').onclick = () => claimNeed(need);
+    // Share link hidden for now, per request — keep makeShareLink() intact
+    // for when this gets revisited. card.appendChild(makeShareLink(need));
+    return card;
+  }
+
+  // Most household items go through SVdP's central warehouse — no
+  // parishioner action needed. Informational only: status badge, no claim
+  // button, no share link (there's nothing for a parishioner to help with).
+  function renderWarehouseCard(need) {
+    const status = (need.status || 'Open');
+    const color = statusColor(status);
+    const isCovered = status.toLowerCase() === 'covered';
+    const card = document.createElement('div');
+    card.className = 'card' + (isCovered ? ' covered' : '');
+    card.innerHTML = `
+      <div>
+        <div class="status-badge" style="background:${color};">${status}</div>
+        <h3 class="card-title">${need.title || ''}</h3>
+        <p class="card-detail">${need.detail || ''}</p>
+      </div>
+      <div class="warehouse-tag">SVdP Warehouse</div>
+    `;
+    return card;
+  }
+
+  function renderBoard() {
+    const el = document.getElementById('board');
+    el.innerHTML = '';
+    const visible = visibleNeeds(NEEDS);
+    const filteredRaw = filter === "All" ? visible : visible.filter(n => n.category === filter);
+    const filtered = sortForBoard(filteredRaw);
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty-note">No open needs in this category right now — thank you!</div>';
+      return;
+    }
+    filtered.forEach((need, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'card-wrap';
+      wrap.style.transform = `rotate(${ROTATIONS[i % ROTATIONS.length]}deg)`;
+
+      const pinColor = statusColor(need.status);
+      const pin = document.createElement('div');
+      pin.className = 'card-pin';
+      pin.style.background = `radial-gradient(circle at 35% 30%, #fff8 0%, ${pinColor} 40%, ${pinColor} 100%)`;
+
+      let card;
+      if (need.category === 'Furnishings') {
+        card = need.subtype === 'special' ? renderClaimCard(need) : renderWarehouseCard(need);
+      } else {
+        card = renderStatusCard(need);
+      }
+
+      wrap.appendChild(pin);
+      wrap.appendChild(card);
+      el.appendChild(wrap);
+    });
+  }
+
+  function renderServed(needs) {
+    const served = servedNeeds(needs);
+    const summaryEl = document.getElementById('served-summary');
+    if (summaryEl) {
+      summaryEl.textContent = `Through your generosity, SVdP has made a difference in the lives of ${served.length} families at difficult times. Thank you!`;
+    }
+
+    const el = document.getElementById('served-board');
+    if (!el) return;
+    el.innerHTML = '';
+    if (!served.length) {
+      el.innerHTML = '<div class="empty-note">No completed needs on record yet.</div>';
+      return;
+    }
+    const sorted = [...served].sort((a, b) =>
+      parseDateSortable(b.date_covered || b.date_posted).localeCompare(parseDateSortable(a.date_covered || a.date_posted))
+    );
+    sorted.forEach((need, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'card-wrap';
+      wrap.style.transform = `rotate(${ROTATIONS[i % ROTATIONS.length]}deg)`;
+
+      const pin = document.createElement('div');
+      pin.className = 'card-pin';
+      pin.style.background = 'radial-gradient(circle at 35% 30%, #fff8 0%, var(--sage) 40%, var(--sage) 100%)';
+
+      const card = document.createElement('div');
+      card.className = 'card served-card';
+      card.innerHTML = `
+        <div>
+          <div class="served-tag">&#10003; Provided</div>
+          <h3 class="card-title">${need.title || ''}</h3>
+          <p class="card-detail">${need.detail || ''}</p>
+        </div>
+      `;
+      wrap.appendChild(pin);
+      wrap.appendChild(card);
+      el.appendChild(wrap);
+    });
+  }
+
+  function renderGlance(needs, resultsRows, snapshotRows) {
+    const snap = latestSnapshot(snapshotRows);
+    const sentenceEl = document.getElementById('snapshot-sentence');
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(needs, resultsRows, snap);
+
+    const btn = document.getElementById('fund-give-btn');
+    if (btn) {
+      if (DONATE_URL) btn.href = DONATE_URL;
+      else { btn.removeAttribute('target'); btn.href = '#'; btn.onclick = (e) => e.preventDefault(); }
+    }
+  }
+
+  async function init() {
+    NEEDS = await loadNeeds();
+    renderFilters();
+    renderBoard();
+    renderServed(NEEDS);
+    renderGlance(NEEDS, await loadResults(), await loadBalanceSnapshots());
+  }
+  init();
+</script>
+</body>
+</html>

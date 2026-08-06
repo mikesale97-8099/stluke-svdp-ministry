@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Become a Volunteer — St. Luke SVdP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page-volunteer .header { text-align: center; margin-bottom: 40px; }
+  .page-volunteer .header-card {
+    display: inline-block; padding: 26px 34px; background: var(--paper);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35); transform: rotate(-0.6deg); max-width: 600px;
+  }
+  .page-volunteer .site-logo {
+    height: 40px; margin-bottom: 12px;
+  }
+  .page-volunteer .header-eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.25em; color: var(--blue); margin-bottom: 8px;
+  }
+  .page-volunteer .header-title {
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 27px; color: var(--ink);
+    margin: 0 0 6px; line-height: 1.3;
+  }
+  .page-volunteer .header-title em { color: var(--rust); font-style: italic; }
+  .page-volunteer .header-sub {
+    font-size: 14px; line-height: 1.6; color: var(--inktext); max-width: 460px; margin: 10px auto 0;
+  }
+
+  .page-volunteer .section { margin-bottom: 48px; }
+
+  .page-volunteer .quote-card {
+    max-width: 540px; margin: 0 auto; text-align: center;
+    padding: 26px 30px; background: var(--paper); box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  }
+  .page-volunteer .quote-text {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 17px;
+    line-height: 1.6; color: var(--ink); margin: 0 0 10px;
+  }
+  .page-volunteer .quote-attr {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.15em; color: var(--rust);
+  }
+
+  .page-volunteer .roles-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+    max-width: 780px; margin: 0 auto;
+  }
+  @media (max-width: 700px) { .page-volunteer .roles-grid { grid-template-columns: 1fr; } }
+  .page-volunteer .role-card {
+    background: var(--paper); box-shadow: 0 6px 14px rgba(43,58,66,0.22);
+    padding: 20px 22px;
+  }
+  .page-volunteer .role-title {
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: var(--ink);
+    margin: 0 0 8px;
+  }
+  .page-volunteer .role-desc { font-size: 13.5px; line-height: 1.55; color: var(--inktext); margin: 0; }
+
+  .page-volunteer .expect-card {
+    max-width: 700px; margin: 0 auto; background: var(--paper);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 26px 30px;
+  }
+  .page-volunteer .expect-item { display: flex; gap: 14px; margin-bottom: 16px; }
+  .page-volunteer .expect-item:last-child { margin-bottom: 0; }
+  .page-volunteer .expect-icon {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--rust);
+    border: 1px solid var(--rust); border-radius: 50%; width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+  }
+  .page-volunteer .expect-text { font-size: 13.5px; line-height: 1.6; color: var(--inktext); }
+  .page-volunteer .expect-text strong { color: var(--ink); font-family: 'Fraunces', serif; }
+
+  .page-volunteer .cta-card {
+    max-width: 480px; margin: 0 auto; text-align: center;
+    padding: 28px 26px; background: var(--blue); color: var(--paper);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  }
+  .page-volunteer .cta-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 21px; margin: 0 0 10px; }
+  .page-volunteer .cta-sub { font-size: 13.5px; line-height: 1.6; margin: 0 0 20px; opacity: 0.92; }
+  .page-volunteer .cta-btn {
+    display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+    background: var(--paper); color: var(--blue); padding: 11px 24px; text-decoration: none; margin: 4px;
+  }
+  .page-volunteer .cta-contact {
+    font-size: 12px; margin-top: 18px; opacity: 0.85; line-height: 1.7;
+  }
+  .page-volunteer .cta-contact a { color: var(--paper); }
+
+  .page-volunteer .footer-note {
+    text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: #E7DDC4; opacity: 0.7; margin-top: 20px; padding-bottom: 16px;
+  }
+</style>
+</head>
+<body class="page-volunteer">
+  <div class="container">
+    <a href="index.html" class="back-btn" aria-label="Back to home">&larr;</a>
+
+    <div class="header">
+      <div class="header-card">
+        <img src="https://www.stluke.org/images/template/logo-header.svg" alt="St. Luke Catholic Church" class="site-logo" />
+        <div class="header-eyebrow">St. Luke Catholic Church &middot; St. Vincent de Paul</div>
+        <h1 class="header-title"><em>See</em> the Face of Christ, <em>Be</em> the Face of Christ</h1>
+        <p class="header-sub">Every home visit, every drive, every gift is an encounter — with our neighbors, and with Christ in them. There's a place for you in this work, whatever time or gifts you have to offer.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="quote-card">
+        <p class="quote-text">"You will find that charity is a heavy burden to carry, heavier than the kettle of soup and the full basket. But you will keep your gentleness and your smile. It is not enough to give soup and bread. This the rich can do. You are the servant of the poor, always smiling and good-humored. They are your masters, terribly sensitive and exacting masters."</p>
+        <div class="quote-attr">&mdash; St. Vincent de Paul</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Ways to Serve</div>
+      <div class="roles-grid">
+        <div class="role-card">
+          <h3 class="role-title">Home Visits</h3>
+          <p class="role-desc">Vincentians visit families in their homes, listen to their struggles, and offer both practical help and a compassionate presence. This is the heart of our ministry.</p>
+        </div>
+        <div class="role-card">
+          <h3 class="role-title">Warehouse &amp; Distribution</h3>
+          <p class="role-desc">Sort, organize, and prepare donated furniture and household goods at the SVdP warehouse so they're ready when a family needs them.</p>
+        </div>
+        <div class="role-card">
+          <h3 class="role-title">Drives &amp; Collections</h3>
+          <p class="role-desc">Help plan and run our seasonal parish drives — 40 Days for 40 Beds, the Blanket Drive, and others — from setup to promotion to collection day.</p>
+        </div>
+        <div class="role-card">
+          <h3 class="role-title">Food Pantry</h3>
+          <p class="role-desc">Sort food, restock the shopping line, unload trucks, help with facility upkeep, and answer phones at either of our two pantry locations — 30th Street or Boulevard Place.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">What to Expect</div>
+      <div class="expect-card">
+        <div class="expect-item">
+          <div class="expect-icon">1</div>
+          <div class="expect-text"><strong>No experience necessary.</strong> Every Vincentian started as a beginner — training and an experienced partner come with every home visit at first.</div>
+        </div>
+        <div class="expect-item">
+          <div class="expect-icon">2</div>
+          <div class="expect-text"><strong>Give what time you have.</strong> Some roles are a couple of hours a month; others, like home visits, ask for a regular ongoing commitment. We'll help you find the right fit.</div>
+        </div>
+        <div class="expect-item">
+          <div class="expect-icon">3</div>
+          <div class="expect-text"><strong>Formation matters to us.</strong> Vincentians take part in ongoing spiritual formation alongside the practical work — this is a ministry as much as it is service.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="cta-card">
+        <h2 class="cta-title">Ready to Serve?</h2>
+        <p class="cta-sub">Reach out and a Vincentian will follow up with next steps — no commitment required to just ask questions.</p>
+        <a href="mailto:svdp@stluke.org?subject=Volunteer%20Interest" class="cta-btn">Email Us &rarr;</a>
+        <a href="tel:+13172594373" class="cta-btn">Call the Parish &rarr;</a>
+        <div class="cta-contact">
+          St. Luke Catholic Church &middot; 7575 Holliday Drive East, Indianapolis, IN 46260<br />
+          (317) 259-4373 &middot; <a href="https://www.stluke.org">stluke.org</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">Society of St. Vincent de Paul &middot; St. Luke Conference</div>
+  </div>
+</body>
+</html>
