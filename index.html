@@ -267,7 +267,7 @@ Thank you!`;
     ];
 
     const headRow = document.createElement('tr');
-    headRow.innerHTML = `<th>Metric</th><th>YTD</th>` + months.map(m => `<th>${formatMonthAbbrev(m.month)}</th>`).join('');
+    headRow.innerHTML = `<th>Metric</th><th>YTD</th>` + months.map(m => `<th>${monthAbbrevFromKey(m.month_key)}</th>`).join('');
     head.appendChild(headRow);
 
     METRICS.forEach(metric => {

@@ -4,9 +4,9 @@
 // Leave as "" to use the sample data below instead.
 // Both index.html and board.html read from this one file.
 // ============================================================
-const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR82kApT_TZfIHVvO3yeyIR6BZQm4kd2DfTfImZuxuyrZ9HHCdyowBtx0OtIgR8OSFBmdgJbf7OHYSJ/pub?gid=248271228&single=true&output=csv";
-const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR82kApT_TZfIHVvO3yeyIR6BZQm4kd2DfTfImZuxuyrZ9HHCdyowBtx0OtIgR8OSFBmdgJbf7OHYSJ/pub?gid=14387743&single=true&output=csv";
-const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR82kApT_TZfIHVvO3yeyIR6BZQm4kd2DfTfImZuxuyrZ9HHCdyowBtx0OtIgR8OSFBmdgJbf7OHYSJ/pub?gid=1768793824&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab (feeds the balance gauge)
+const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQCQVKoe3_69yXdGCc3bCDW7b25r9LYp0vDOuVA7XXYu9FOlxb0YlUY5ravy1h7PyuZhO2rCUrW12S-/pub?gid=312020093&single=true&output=csv";
+const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQCQVKoe3_69yXdGCc3bCDW7b25r9LYp0vDOuVA7XXYu9FOlxb0YlUY5ravy1h7PyuZhO2rCUrW12S-/pub?gid=935529416&single=true&output=csv";
+const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQCQVKoe3_69yXdGCc3bCDW7b25r9LYp0vDOuVA7XXYu9FOlxb0YlUY5ravy1h7PyuZhO2rCUrW12S-/pub?gid=1828466602&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab (feeds the balance gauge)
 
 // Where "Give" buttons send people — the ONE shared SVdP giving option on the
 // parish site. There is no way to earmark a gift to a specific family: all
@@ -57,6 +57,20 @@ function formatMonthAbbrev(monthLabel) {
   if (isNaN(d)) return monthLabel;
   const abbrev = d.toLocaleString('en-US', { month: 'short' });
   return `${abbrev}-${String(year).slice(-2)}`;
+}
+
+// "2026-08" (or "2026-8", or a full date) -> "Aug-26". Derives from
+// month_key rather than the free-text "month" column, since that column's
+// format varies by how it was typed in the sheet (e.g. "August 2026" vs a
+// raw date like "8/1/26") — month_key is the one field meant to be
+// machine-readable, so it's the reliable source for this.
+function monthAbbrevFromKey(key) {
+  const k = toMonthKey(key);
+  const m = k.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return key || '';
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, 1);
+  const abbrev = d.toLocaleString('en-US', { month: 'short' });
+  return `${abbrev}-${m[1].slice(-2)}`;
 }
 
 // ------------------------------------------------------------
@@ -318,13 +332,15 @@ function latestSnapshot(rows) {
   return rows.length ? rows[rows.length - 1] : null;
 }
 
-// "2026-08-01" or "2026-08" -> "2026-08". Handles both a full date and an
-// already-YYYY-MM string, since month_posted is the latter and date_covered
-// is the former.
+// "2026-08-01" or "2026-08" or "2026-8" -> "2026-08". Handles a full date,
+// a zero-padded YYYY-MM string, and an unpadded YYYY-M string (Google
+// Sheets doesn't enforce padding on manually-typed month_key values, and a
+// missing leading zero is an easy typo to make).
 function toMonthKey(dateOrMonthStr) {
   if (!dateOrMonthStr) return '';
   const s = String(dateOrMonthStr).trim();
-  if (/^\d{4}-\d{2}$/.test(s)) return s;
+  const monthKeyMatch = s.match(/^(\d{4})-(\d{1,2})$/);
+  if (monthKeyMatch) return `${monthKeyMatch[1]}-${monthKeyMatch[2].padStart(2, '0')}`;
   const iso = parseDateSortable(s);
   return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso.slice(0, 7) : '';
 }
@@ -382,8 +398,8 @@ function outstandingNeedsSummary(needs) {
 function buildSnapshotSentence(needs, resultsRows, snap) {
   if (!snap) return '';
   const month = formatMonthName(snap.snapshot_date) || 'this month';
-  const monthYear = formatMonthYear(snap.snapshot_date);
-  const results = (resultsRows || []).find(r => r.month === monthYear);
+  const snapMonthKey = toMonthKey(snap.snapshot_date);
+  const results = (resultsRows || []).find(r => toMonthKey(r.month_key) === snapMonthKey);
 
   let activity;
   if (results) {
