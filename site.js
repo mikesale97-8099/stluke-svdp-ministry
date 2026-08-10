@@ -220,7 +220,33 @@ async function loadVisits() {
     return SAMPLE_NEEDS;
   }
 }
-async function loadResults() { return loadCSV(RESULTS_CSV_URL, SAMPLE_RESULTS); }
+// The Results tab has since been rebuilt with a richer per-category
+// Requested/Covered breakdown (separate columns for e.g. "# Furniture
+// Requests" vs "# Furniture Requests Covered") instead of the original
+// simple 5-metric shape. This maps the richer shape down to that original
+// simple shape — using the COVERED-only columns, not raw request volume,
+// per an explicit decision that these figures should reflect fulfilled
+// requests. Falls through unchanged if a row already has the original
+// simple field names, so an older/simpler Results tab still works too.
+function normalizeResultsRow(r) {
+  if (!r) return r;
+  if ('home_visits' in r) return r;
+  const num = (key) => toNumber(r[key]);
+  return {
+    month: r.month || '',
+    month_key: r.month_key || '',
+    home_visits: String(num('#_home_visits')),
+    people_helped: String(num('#_people_helped_(covered_requests_only)')),
+    furniture_requests: String(num('#_furniture_requests_covered') + num('#_special_needs_requests_covered')),
+    rent_utility_requests: String(num('#_rent_assistance_requests_covered') + num('#_utility_assistance_requests_covered')),
+    financial_assistance: String(num('$_rent_covered') + num('$_utility_covered')),
+  };
+}
+
+async function loadResults() {
+  const rows = await loadCSV(RESULTS_CSV_URL, SAMPLE_RESULTS);
+  return rows.map(normalizeResultsRow);
+}
 
 // ------------------------------------------------------------
 // Expand each visit row into board cards — this is the bridge between the
