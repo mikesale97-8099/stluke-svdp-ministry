@@ -4,9 +4,9 @@
 // Leave as "" to use the sample data below instead.
 // Both index.html and board.html read from this one file.
 // ============================================================
-const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQCQVKoe3_69yXdGCc3bCDW7b25r9LYp0vDOuVA7XXYu9FOlxb0YlUY5ravy1h7PyuZhO2rCUrW12S-/pub?gid=312020093&single=true&output=csv";
-const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQCQVKoe3_69yXdGCc3bCDW7b25r9LYp0vDOuVA7XXYu9FOlxb0YlUY5ravy1h7PyuZhO2rCUrW12S-/pub?gid=935529416&single=true&output=csv";
-const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQCQVKoe3_69yXdGCc3bCDW7b25r9LYp0vDOuVA7XXYu9FOlxb0YlUY5ravy1h7PyuZhO2rCUrW12S-/pub?gid=1828466602&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab (feeds the balance gauge)
+const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1302127648&single=true&output=csv";
+const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1433551626&single=true&output=csv";
+const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=49249456&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab (feeds the balance gauge)
 
 // Where "Give" buttons send people — the ONE shared SVdP giving option on the
 // parish site. There is no way to earmark a gift to a specific family: all
@@ -351,11 +351,15 @@ function toMonthKey(dateOrMonthStr) {
 // visible through August, then rolls off in September. Open/Partially
 // Covered needs keep showing regardless of age, and needs with no
 // date_covered yet (e.g. Special Need items, which don't have that column)
-// fall back to their posted month, same as before.
+// fall back to their posted month, same as before. Closed needs never show
+// at all — not active, not archived. "Unknown" is deliberately left alone
+// for now (falls through to the same treatment as Open) until there's a
+// decision on how it should actually be handled.
 function visibleNeeds(needs) {
   const thisMonth = currentMonthKey();
   return needs.filter(n => {
     const status = (n.status || 'open').toLowerCase();
+    if (status === 'closed') return false;
     if (status !== 'covered') return true;
     const coveredMonth = toMonthKey(n.date_covered) || toMonthKey(n.month_posted) || thisMonth;
     return coveredMonth === thisMonth;
