@@ -14,17 +14,6 @@
 
     <div class="intro-card">
       <h1 class="header-title">St. Luke <span class="title-accent">SVdP</span> Needs Board</h1>
-
-      <div class="legend-card">
-        <div class="legend-item">
-          <div class="legend-icon">&#127968;</div>
-          <div class="legend-text"><strong>Furnishings &amp; household items</strong> are usually filled through SVdP's central warehouse — no action needed from you. Once in a while a special item like a microwave or a high chair needs a parishioner's help — those cards have an <em>"I can help"</em> button.</div>
-        </div>
-        <div class="legend-item">
-          <div class="legend-icon">&#128153;</div>
-          <div class="legend-text"><strong>Rent &amp; utility needs</strong> are covered through our conference's monthly parish assistance fund — shown here so our parish family can see the difference this ministry makes and keep these neighbors in their prayers.</div>
-        </div>
-      </div>
     </div>
 
     <div class="section-label board-label">Needs Bulletin Board</div>
@@ -228,7 +217,8 @@ Thank you!`;
     const served = servedNeeds(needs);
     const summaryEl = document.getElementById('served-summary');
     if (summaryEl) {
-      summaryEl.textContent = `Through your generosity, SVdP has made a difference in the lives of ${served.length} families at difficult times. Thank you!`;
+      const familyWord = served.length === 1 ? 'family' : 'families';
+      summaryEl.textContent = `Through your generosity, SVdP has made a difference in the lives of ${served.length} ${familyWord} at difficult times. Thank you!`;
     }
 
     const el = document.getElementById('served-board');
@@ -246,19 +236,23 @@ Thank you!`;
       wrap.className = 'card-wrap';
       wrap.style.transform = `rotate(${ROTATIONS[i % ROTATIONS.length]}deg)`;
 
+      // Sage pin (instead of the live board's red) is the one intentional
+      // visual difference from the board — a quiet cue that these are past,
+      // resolved needs. The card itself reuses the exact same renderers as
+      // the live board, so it shows the same home-visit date + status
+      // badge (reading "Covered", straight from need.status) rather than a
+      // bespoke "✓ Provided" tag.
       const pin = document.createElement('div');
       pin.className = 'card-pin';
       pin.style.background = 'radial-gradient(circle at 35% 30%, #fff8 0%, var(--sage) 40%, var(--sage) 100%)';
 
-      const card = document.createElement('div');
-      card.className = 'card served-card';
-      card.innerHTML = `
-        <div>
-          <div class="served-tag">&#10003; Provided</div>
-          <h3 class="card-title">${need.title || ''}</h3>
-          <p class="card-detail">${need.detail || ''}</p>
-        </div>
-      `;
+      let card;
+      if (need.category === 'Furnishings') {
+        card = need.subtype === 'special' ? renderClaimCard(need) : renderWarehouseCard(need);
+      } else {
+        card = renderStatusCard(need);
+      }
+
       wrap.appendChild(pin);
       wrap.appendChild(card);
       el.appendChild(wrap);
