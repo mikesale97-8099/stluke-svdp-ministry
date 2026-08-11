@@ -166,6 +166,7 @@ Thank you!`;
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${color};border-color:${color};">${status.toUpperCase()}</div>
+      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -184,6 +185,7 @@ Thank you!`;
     card.className = 'card' + (isClaimed ? ' claimed' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${sheetCovered ? color : 'var(--sage)'};border-color:${sheetCovered ? color : 'var(--sage)'};${isClaimed ? '' : 'display:none;'}">${sheetCovered ? 'COVERED' : 'CLAIMED'}</div>
+      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${need.status || 'Open'}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -206,6 +208,7 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
+      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -248,22 +251,23 @@ Thank you!`;
     });
   }
 
-  function renderResults(rows) {
+  function renderResults(monthlyResults) {
     const head = document.getElementById('results-head');
     const body = document.getElementById('results-body');
     head.innerHTML = '';
     body.innerHTML = '';
 
-    // Assumes the sheet lists months chronologically ascending (June, July,
-    // August, ...) — reverse so the table reads most-recent-first.
-    const months = [...rows].reverse();
+    // computeMonthlyResults() already returns oldest-first — reverse so the
+    // table reads most-recent-first.
+    const months = [...monthlyResults].reverse();
 
     const METRICS = [
       { key: 'home_visits', label: 'Home Visits' },
-      { key: 'people_helped', label: 'People Helped' },
-      { key: 'furniture_requests', label: 'Furniture / Home Requests' },
-      { key: 'rent_utility_requests', label: 'Rent / Utility Requests' },
-      { key: 'financial_assistance', label: 'Financial Assistance', money: true },
+      { key: 'families_helped', label: 'Families Helped' },
+      { key: 'people_touched', label: 'People Touched' },
+      { key: 'furniture_covered', label: 'Furniture Requests Covered' },
+      { key: 'rent_covered', label: 'Rent Requests Covered' },
+      { key: 'utility_covered', label: 'Utility Requests Covered' },
     ];
 
     const headRow = document.createElement('tr');
@@ -271,12 +275,11 @@ Thank you!`;
     head.appendChild(headRow);
 
     METRICS.forEach(metric => {
-      const values = months.map(m => toNumber(m[metric.key]));
+      const values = months.map(m => m[metric.key] || 0);
       const ytd = values.reduce((sum, v) => sum + v, 0);
-      const fmt = (n) => metric.money ? `$${n.toLocaleString()}` : n.toLocaleString();
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${metric.label}</td><td class="ytd-col">${fmt(ytd)}</td>` +
-        values.map(v => `<td>${fmt(v)}</td>`).join('');
+      tr.innerHTML = `<td>${metric.label}</td><td class="ytd-col">${ytd.toLocaleString()}</td>` +
+        values.map(v => `<td>${v.toLocaleString()}</td>`).join('');
       body.appendChild(tr);
     });
   }
@@ -294,10 +297,11 @@ Thank you!`;
   }
 
   async function init() {
-    const needs = await loadNeeds();
+    const visits = await loadVisits();
+    const needs = expandVisitsToNeeds(visits);
     const results = await loadResults();
     renderPreview(needs);
-    renderResults(results);
+    renderResults(computeMonthlyResults(visits));
     renderGlance(needs, results, await loadBalanceSnapshots());
   }
   init();

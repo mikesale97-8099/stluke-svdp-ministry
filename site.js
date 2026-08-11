@@ -73,6 +73,27 @@ function monthAbbrevFromKey(key) {
   return `${abbrev}-${m[1].slice(-2)}`;
 }
 
+// A full date string in whatever format the sheet exported (e.g. "8/7/26")
+// -> "Aug 7", for the small date label in a card's corner. No year, no
+// leading zero on the day — this is a quick "when" glance, not a precise
+// record (the full date is already in the underlying data if ever needed).
+function formatShortDate(dateStr) {
+  const iso = parseDateSortable(dateStr);
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return '';
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const month = d.toLocaleString('en-US', { month: 'short' });
+  return `${month} ${Number(m[3])}`;
+}
+
+// Small shared HTML snippet used by every card renderer (board + preview +
+// archive) so the date badge stays visually and behaviorally identical
+// everywhere a card appears, rather than reimplemented per render function.
+function cardDateHTML(need) {
+  const label = formatShortDate(need.date_posted);
+  return label ? `<div class="card-date">${label}</div>` : '';
+}
+
 // ------------------------------------------------------------
 // Sample data — one row per home visit, matching the real Needs
 // tab column headers (after Google's CSV-publish header normalization:
@@ -329,6 +350,60 @@ function expandVisitsToNeeds(visits) {
 async function loadNeeds() {
   const visits = await loadVisits();
   return expandVisitsToNeeds(visits);
+}
+
+// Computes month-by-month counts directly from the Needs tab's raw visit
+// rows — Home Visits, Families Helped, People Touched, and each category's
+// Covered count — rather than depending on the Results tab having any
+// particular column layout. "Families Helped" in particular has no
+// equivalent column there. Uses the same "any one covered request counts
+// the family" rule already validated for people-helped counts, just
+// counting 1 per qualifying visit instead of summing household size for
+// the family total (and still summing household size separately for the
+// people-touched total).
+function computeMonthlyResults(visits) {
+  const byMonth = {};
+  visits.forEach(v => {
+    const monthKey = toMonthKey(v.month_posted);
+    if (!monthKey) return;
+    if (!byMonth[monthKey]) {
+      byMonth[monthKey] = {
+        month_key: monthKey,
+        home_visits: 0, families_helped: 0, people_touched: 0,
+        furniture_covered: 0, rent_covered: 0, utility_covered: 0,
+      };
+    }
+    const m = byMonth[monthKey];
+    m.home_visits += 1;
+
+    const householdSize = toNumber(v['#_in_household']) || 0;
+
+    const warehouseCoveredThisMonth =
+      (v.warehouse_status || '').toLowerCase() === 'covered' &&
+      toMonthKey(v.distribution_center_request_date) === monthKey;
+    // Special Need has no Date Covered column yet (documented known gap) —
+    // falls back to month_posted, same as the rest of the site does.
+    const specialCoveredThisMonth =
+      (v.special_need_status || '').toLowerCase() === 'covered' &&
+      monthKey === toMonthKey(v.month_posted);
+    const rentCoveredThisMonth =
+      (v.rent_need_status || '').toLowerCase() === 'covered' &&
+      toMonthKey(v.rent_date_covered) === monthKey;
+    const utilityCoveredThisMonth =
+      (v.utility_need_status || '').toLowerCase() === 'covered' &&
+      toMonthKey(v.utility_date_covered) === monthKey;
+
+    if (warehouseCoveredThisMonth) m.furniture_covered += 1;
+    if (specialCoveredThisMonth) m.furniture_covered += 1;
+    if (rentCoveredThisMonth) m.rent_covered += 1;
+    if (utilityCoveredThisMonth) m.utility_covered += 1;
+
+    if (warehouseCoveredThisMonth || specialCoveredThisMonth || rentCoveredThisMonth || utilityCoveredThisMonth) {
+      m.families_helped += 1;
+      m.people_touched += householdSize;
+    }
+  });
+  return Object.values(byMonth).sort((a, b) => a.month_key.localeCompare(b.month_key));
 }
 
 // ------------------------------------------------------------

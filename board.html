@@ -132,6 +132,7 @@ Thank you!`;
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${color};border-color:${color};">${status.toUpperCase()}</div>
+      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -155,6 +156,7 @@ Thank you!`;
     card.className = 'card' + (isClaimed ? ' claimed' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${sheetCovered ? color : 'var(--sage)'};border-color:${sheetCovered ? color : 'var(--sage)'};${isClaimed ? '' : 'display:none;'}">${sheetCovered ? 'COVERED' : 'CLAIMED'}</div>
+      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${need.status || 'Open'}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -182,6 +184,7 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
+      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -254,6 +257,7 @@ Thank you!`;
       const card = document.createElement('div');
       card.className = 'card served-card';
       card.innerHTML = `
+        ${cardDateHTML(need)}
         <div>
           <div class="served-tag">&#10003; Provided</div>
           <h3 class="card-title">${need.title || ''}</h3>
