@@ -86,13 +86,13 @@ body {
   text-transform: uppercase; text-align: center; padding: 8px 0;
   color: var(--inktext); opacity: 0.7; border-top: 1px dashed var(--paperline);
 }
+.page-board .card-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .page-board .status-badge {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
-  padding: 3px 10px; border-radius: 10px; margin: 0 0 10px; color: #fff;
+  padding: 3px 10px; border-radius: 10px; color: #fff;
 }
 .page-board .card-date {
-  position: absolute; top: 20px; right: 20px;
   font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.03em;
   color: var(--inktext);
 }
@@ -203,7 +203,7 @@ body {
 
 .page-board .card-wrap { position: relative; width: 256px; }
 .page-board .card {
-  position: relative; min-height: 165px; padding: 34px 20px 18px;
+  position: relative; min-height: 165px; padding: 22px 20px 18px;
   overflow: hidden;
   background: var(--paper);
   background-image: repeating-linear-gradient(var(--paper) 0px, var(--paper) 27px, var(--paperline) 28px);
@@ -380,7 +380,7 @@ body {
 }
 .page-index .card-wrap { position: relative; width: 240px; }
 .page-index .card {
-  position: relative; min-height: 170px; padding: 30px 18px 18px;
+  position: relative; min-height: 170px; padding: 22px 18px 18px;
   overflow: hidden;
   background: var(--paper);
   background-image: repeating-linear-gradient(var(--paper) 0px, var(--paper) 27px, var(--paperline) 28px);
@@ -398,13 +398,13 @@ body {
   padding: 8px 0; background: var(--ink); color: var(--paper); border: none; border-radius: 2px; cursor: pointer;
 }
 .page-index .card-btn.claimed-btn { background: transparent; color: var(--sage); border: 1px solid var(--sage); cursor: default; }
+.page-index .card-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .page-index .status-badge {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
-  padding: 3px 9px; border-radius: 10px; margin: 0 0 8px; color: #fff;
+  padding: 3px 9px; border-radius: 10px; color: #fff;
 }
 .page-index .card-date {
-  position: absolute; top: 18px; right: 18px;
   font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
   color: var(--inktext);
 }

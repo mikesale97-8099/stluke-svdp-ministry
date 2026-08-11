@@ -159,9 +159,11 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
-      <div class="card-date">${formatMonthDay(need.date_posted)}</div>
       <div>
-        <div class="status-badge" style="background:${color};">${status}</div>
+        <div class="card-top-row">
+          <div class="status-badge" style="background:${color};">${status}</div>
+          <div class="card-date">${formatMonthDay(need.date_posted)}</div>
+        </div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
       </div>
@@ -176,9 +178,11 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isClaimed ? ' claimed' : '');
     card.innerHTML = `
-      <div class="card-date">${formatMonthDay(need.date_posted)}</div>
       <div>
-        <div class="status-badge" style="background:${isClaimed && !sheetCovered ? 'var(--sage)' : color};">${sheetCovered ? need.status : (isClaimed ? 'Claimed' : (need.status || 'Open'))}</div>
+        <div class="card-top-row">
+          <div class="status-badge" style="background:${isClaimed && !sheetCovered ? 'var(--sage)' : color};">${sheetCovered ? need.status : (isClaimed ? 'Claimed' : (need.status || 'Open'))}</div>
+          <div class="card-date">${formatMonthDay(need.date_posted)}</div>
+        </div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
       </div>
@@ -199,9 +203,11 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
-      <div class="card-date">${formatMonthDay(need.date_posted)}</div>
       <div>
-        <div class="status-badge" style="background:${color};">${status}</div>
+        <div class="card-top-row">
+          <div class="status-badge" style="background:${color};">${status}</div>
+          <div class="card-date">${formatMonthDay(need.date_posted)}</div>
+        </div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
       </div>
