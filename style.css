@@ -31,6 +31,7 @@ body {
 .card-pin {
   position: absolute; left: 50%; top: -10px; transform: translateX(-50%);
   width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8 0%, var(--rust) 40%, var(--rust) 100%);
   box-shadow: 0 2px 3px rgba(0,0,0,0.35); z-index: 10;
 }
 .card-urgency { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 6px; }
@@ -85,21 +86,13 @@ body {
   text-transform: uppercase; text-align: center; padding: 8px 0;
   color: var(--inktext); opacity: 0.7; border-top: 1px dashed var(--paperline);
 }
-.page-board .stamp {
-  position: absolute; right: -8px; top: -12px; transform: rotate(-14deg);
-  font-family: 'IBM Plex Mono', monospace;
-  border: 3px solid; border-radius: 6px; padding: 2px 10px;
-  font-size: 12px; font-weight: 700; letter-spacing: 0.06em; opacity: 0.9;
-  mix-blend-mode: multiply; pointer-events: none;
-}
 .page-board .status-badge {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
-  padding: 3px 10px; border-radius: 10px; margin: 0 0 10px; background: var(--paper);
-  border: 1.5px solid;
+  padding: 3px 10px; border-radius: 10px; margin: 0 0 10px; color: #fff;
 }
 .page-board .card-date {
-  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 20px; right: 20px;
   font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.03em;
   color: var(--inktext);
 }
@@ -405,21 +398,13 @@ body {
   padding: 8px 0; background: var(--ink); color: var(--paper); border: none; border-radius: 2px; cursor: pointer;
 }
 .page-index .card-btn.claimed-btn { background: transparent; color: var(--sage); border: 1px solid var(--sage); cursor: default; }
-.page-index .stamp {
-  position: absolute; right: -8px; top: -12px; transform: rotate(-14deg);
-  font-family: 'IBM Plex Mono', monospace;
-  border: 3px solid; border-radius: 6px; padding: 2px 8px;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; opacity: 0.9;
-  mix-blend-mode: multiply; pointer-events: none;
-}
 .page-index .status-badge {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
-  padding: 3px 9px; border-radius: 10px; margin: 0 0 8px; background: var(--paper);
-  border: 1.5px solid;
+  padding: 3px 9px; border-radius: 10px; margin: 0 0 8px; color: #fff;
 }
 .page-index .card-date {
-  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 18px; right: 18px;
   font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
   color: var(--inktext);
 }
