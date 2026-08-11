@@ -95,12 +95,13 @@ body {
 .page-board .status-badge {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
-  padding: 3px 10px; border-radius: 10px; margin-bottom: 10px; color: #fff;
+  padding: 3px 10px; border-radius: 10px; margin: 0 0 10px; background: var(--paper);
+  border: 1.5px solid;
 }
 .page-board .card-date {
-  position: absolute; top: 14px; right: 16px;
-  font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.03em;
-  color: var(--inktext); opacity: 0.55;
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.03em;
+  color: var(--inktext);
 }
 .page-board .amount-note { font-size: 12px; color: var(--inktext); opacity: 0.75; margin: 8px 0 0; }
 .page-board .empty-note {
@@ -209,7 +210,8 @@ body {
 
 .page-board .card-wrap { position: relative; width: 256px; }
 .page-board .card {
-  position: relative; min-height: 165px; padding: 22px 20px 18px;
+  position: relative; min-height: 165px; padding: 34px 20px 18px;
+  overflow: hidden;
   background: var(--paper);
   background-image: repeating-linear-gradient(var(--paper) 0px, var(--paper) 27px, var(--paperline) 28px);
   box-shadow: 0 6px 14px rgba(43,58,66,0.22);
@@ -385,7 +387,8 @@ body {
 }
 .page-index .card-wrap { position: relative; width: 240px; }
 .page-index .card {
-  position: relative; min-height: 170px; padding: 22px 18px 18px;
+  position: relative; min-height: 170px; padding: 30px 18px 18px;
+  overflow: hidden;
   background: var(--paper);
   background-image: repeating-linear-gradient(var(--paper) 0px, var(--paper) 27px, var(--paperline) 28px);
   box-shadow: 0 6px 14px rgba(43,58,66,0.22);
@@ -412,12 +415,13 @@ body {
 .page-index .status-badge {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
-  padding: 3px 9px; border-radius: 10px; margin-bottom: 8px; color: #fff;
+  padding: 3px 9px; border-radius: 10px; margin: 0 0 8px; background: var(--paper);
+  border: 1.5px solid;
 }
 .page-index .card-date {
-  position: absolute; top: 12px; right: 14px;
-  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.03em;
-  color: var(--inktext); opacity: 0.55;
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+  color: var(--inktext);
 }
 .page-index .amount-note { font-size: 11px; color: var(--inktext); opacity: 0.75; margin: 6px 0 0; }
 .page-index .warehouse-tag {

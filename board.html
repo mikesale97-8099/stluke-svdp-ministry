@@ -117,6 +117,39 @@ Thank you!`;
     return a;
   }
 
+  // Builds the diagonal "OPEN"/"COVERED"/etc. stamp as its own element,
+  // sized to sit OUTSIDE the card's top-right corner. Deliberately NOT part
+  // of the card's own innerHTML: the card has overflow:hidden (so nothing
+  // inside it — e.g. the status-badge oval — can ever visually spill onto
+  // the blue page background), and the stamp needs to overhang the corner
+  // on purpose. It's appended to the card-wrap instead, positioned to line
+  // up with the card's corner (wrap and card share the same top-left/width,
+  // since card-pin is the only other wrap child and it's positioned via a
+  // negative offset that doesn't affect layout flow).
+  function makeStamp(need) {
+    if (need.category === 'Furnishings' && need.subtype !== 'special') return null; // warehouse cards: no stamp
+    let text, color;
+    if (need.category === 'Furnishings') {
+      // Special Need claim card: only show a stamp once claimed/covered.
+      const sheetCovered = (need.status || '').toLowerCase() === 'covered';
+      const isClaimed = claimed.has(need.id) || sheetCovered;
+      if (!isClaimed) return null;
+      color = sheetCovered ? statusColor(need.status) : 'var(--sage)';
+      text = sheetCovered ? 'COVERED' : 'CLAIMED';
+    } else {
+      // Rent/Utility status card: always shows its current status.
+      const status = need.status || 'Open';
+      color = statusColor(status);
+      text = status.toUpperCase();
+    }
+    const el = document.createElement('div');
+    el.className = 'stamp';
+    el.style.color = color;
+    el.style.borderColor = color;
+    el.textContent = text;
+    return el;
+  }
+
   function renderStatusCard(need) {
     const status = (need.status || 'Open');
     const color = statusColor(status);
@@ -124,10 +157,9 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
-      <div class="stamp" style="color:${color};border-color:${color};">${status.toUpperCase()}</div>
       <div class="card-date">${formatMonthDay(need.date_posted)}</div>
       <div>
-        <div class="status-badge" style="background:${color};">${status}</div>
+        <div class="status-badge" style="color:${color};border-color:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
       </div>
@@ -147,10 +179,9 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isClaimed ? ' claimed' : '');
     card.innerHTML = `
-      <div class="stamp" style="color:${sheetCovered ? color : 'var(--sage)'};border-color:${sheetCovered ? color : 'var(--sage)'};${isClaimed ? '' : 'display:none;'}">${sheetCovered ? 'COVERED' : 'CLAIMED'}</div>
       <div class="card-date">${formatMonthDay(need.date_posted)}</div>
       <div>
-        <div class="status-badge" style="background:${color};">${need.status || 'Open'}</div>
+        <div class="status-badge" style="color:${color};border-color:${color};">${need.status || 'Open'}</div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
       </div>
@@ -178,7 +209,7 @@ Thank you!`;
     card.innerHTML = `
       <div class="card-date">${formatMonthDay(need.date_posted)}</div>
       <div>
-        <div class="status-badge" style="background:${color};">${status}</div>
+        <div class="status-badge" style="color:${color};border-color:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
       </div>
@@ -216,6 +247,8 @@ Thank you!`;
 
       wrap.appendChild(pin);
       wrap.appendChild(card);
+      const stamp = makeStamp(need);
+      if (stamp) wrap.appendChild(stamp);
       el.appendChild(wrap);
     });
   }
