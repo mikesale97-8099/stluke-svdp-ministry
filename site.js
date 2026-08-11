@@ -4,8 +4,8 @@
 // Leave as "" to use the sample data below instead.
 // Both index.html and board.html read from this one file.
 // ============================================================
-const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1302127648&single=true&output=csv";
-const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1433551626&single=true&output=csv";
+const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=901926330&single=true&output=csv";
+const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1382899209&single=true&output=csv";
 const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=49249456&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab — NOT currently loaded by either page (see note above DONATE_URL); left here so it's a one-line change to bring back
 
 // NOT currently used. The parish gives our conference a monthly operating
