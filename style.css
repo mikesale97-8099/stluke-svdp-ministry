@@ -13,6 +13,11 @@ body {
   background-attachment: fixed;
 }
 .container { max-width: 960px; margin: 0 auto; padding: 48px 20px 30px; position: relative; }
+.fallback-warning {
+  background: #A8492E; color: #fff; font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; letter-spacing: 0.02em; text-align: center; line-height: 1.6;
+  padding: 10px 20px;
+}
 
 /* ---- Shared across both pages (identical on board.html and index.html) ---- */
 .section-label {
@@ -261,7 +266,7 @@ body {
   letter-spacing: 0.06em; color: var(--ink); font-weight: 700;
 }
 .page-index tr.total-row td { font-weight: 700; color: var(--ink); border-top: 2px solid var(--ink); border-bottom: none; }
-.page-index tr.ytd-row td { font-weight: 700; color: var(--ink); background: rgba(37,64,142,0.06); }
+.page-index td.ytd-col { font-weight: 700; color: var(--ink); background: rgba(37,64,142,0.06); }
 
 .page-index .sisters { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; }
 .page-index .sister-card {

@@ -203,20 +203,29 @@ function parseCSV(text) {
   });
 }
 
+// Tracks whether any load*() call this page load had to fall back to
+// hardcoded sample data — missing CSV URL, fetch failure, or a non-OK
+// response. Checked after init() on both pages to show a visible warning
+// banner instead of silently displaying fake-looking (but plausible)
+// numbers, which is exactly what happened before this existed: a failed
+// fetch quietly showed sample data and nobody could tell it wasn't real.
+let usedFallbackData = false;
+
 async function loadCSV(url, fallback) {
-  if (!url) return fallback;
+  if (!url) { usedFallbackData = true; return fallback; }
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error('fetch failed');
     return parseCSV(await res.text());
   } catch (e) {
     console.warn('Falling back to sample data for', url, e);
+    usedFallbackData = true;
     return fallback;
   }
 }
 
 async function loadVisits() {
-  if (!NEEDS_CSV_URL) return SAMPLE_NEEDS;
+  if (!NEEDS_CSV_URL) { usedFallbackData = true; return SAMPLE_NEEDS; }
   try {
     const res = await fetch(NEEDS_CSV_URL);
     if (!res.ok) throw new Error('fetch failed');
@@ -230,6 +239,7 @@ async function loadVisits() {
     return parseCSV(text);
   } catch (e) {
     console.warn('Falling back to sample data for Needs CSV', e);
+    usedFallbackData = true;
     return SAMPLE_NEEDS;
   }
 }
@@ -391,6 +401,20 @@ function toMonthKey(dateOrMonthStr) {
   return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso.slice(0, 7) : '';
 }
 
+// Sorts Results rows by month_key, most-recent-first, and drops any row
+// whose month_key doesn't actually parse to a real YYYY-MM (a stray blank
+// template row for next month, a totals/summary row, etc.). This used to
+// be handled by just trusting the sheet's row order (oldest-first) and
+// grabbing the last element — that broke silently and picked the wrong
+// month if the sheet ever had an extra non-month row at the end, so this
+// sorts explicitly instead of assuming anything about row order.
+function sortResultsByMonthDesc(rows) {
+  return (rows || [])
+    .filter(r => /^\d{4}-\d{2}$/.test(toMonthKey(r.month_key)))
+    .slice()
+    .sort((a, b) => toMonthKey(b.month_key).localeCompare(toMonthKey(a.month_key)));
+}
+
 // Applies the monthly rollover rule: a Covered need drops off once the
 // month it was ACTUALLY covered in has passed — not the month the need was
 // originally posted. A need requested in July but covered in August stays
@@ -450,8 +474,9 @@ function outstandingNeedsSummary(needs) {
 // re-derivation from the Needs data needed, unlike an earlier version of
 // this function).
 function buildSnapshotSentence(resultsRows) {
-  if (!resultsRows || !resultsRows.length) return '';
-  const latest = resultsRows[resultsRows.length - 1];
+  const sorted = sortResultsByMonthDesc(resultsRows);
+  if (!sorted.length) return '';
+  const latest = sorted[0];
   const month = latest.month || 'this month';
   const year = (toMonthKey(latest.month_key) || '').slice(0, 4) || String(new Date().getFullYear());
 
@@ -460,13 +485,13 @@ function buildSnapshotSentence(resultsRows) {
   const rentUtility = toNumber(latest.rent_requests) + toNumber(latest.utility_requests);
   const visitWord = visits === 1 ? 'home' : 'homes';
 
-  const p1 = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord} to understand their needs. We worked with these families and others we met in prior months and have provided for <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'}, and <strong>${rentUtility}</strong> rent/utility assistance request${rentUtility === 1 ? '' : 's'}.`;
+  const p1 = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord} to understand their needs. Between new requests and ones carried over from prior months, we fulfilled <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'} and <strong>${rentUtility}</strong> rent or utility assistance request${rentUtility === 1 ? '' : 's'} this month.`;
 
-  const ytdRows = resultsRows.filter(r => (toMonthKey(r.month_key) || '').startsWith(year));
+  const ytdRows = sorted.filter(r => (toMonthKey(r.month_key) || '').startsWith(year));
   const familiesYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.families_helped), 0);
   const peopleYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.people_helped), 0);
 
-  const p2 = `In <strong>${year}</strong>, we have helped <strong>${familiesYTD}</strong> famil${familiesYTD === 1 ? 'y' : 'ies'} and <strong>${peopleYTD}</strong> people in those households through your generosity. Thank you!`;
+  const p2 = `In <strong>${year}</strong>, SVdP has helped <strong>${familiesYTD}</strong> famil${familiesYTD === 1 ? 'y' : 'ies'} — <strong>${peopleYTD}</strong> people in total — through your generosity. Thank you!`;
 
   return `<p>${p1}</p><p>${p2}</p>`;
 }
@@ -510,4 +535,16 @@ function sortForBoard(needs) {
 const STATUS_COLOR = { open: "#A8492E", "partially covered": "#C9A24B", covered: "#7C8B6F" };
 function statusColor(status) {
   return STATUS_COLOR[(status || 'open').toLowerCase()] || STATUS_COLOR.open;
+}
+
+// Call once after all load*() calls finish in a page's init(). Injects a
+// visible banner at the top of the page if any of them fell back to sample
+// data, so a broken CSV fetch can never again look like real (but wrong)
+// numbers — see the usedFallbackData note near loadCSV()/loadVisits().
+function showFallbackWarningIfNeeded() {
+  if (!usedFallbackData) return;
+  const el = document.createElement('div');
+  el.className = 'fallback-warning';
+  el.textContent = 'Showing sample placeholder data — the live Google Sheet failed to load. Check NEEDS_CSV_URL / RESULTS_CSV_URL in site.js, and your browser console for the specific error.';
+  document.body.prepend(el);
 }

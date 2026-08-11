@@ -276,6 +276,7 @@ Thank you!`;
     renderBoard();
     renderServed(NEEDS);
     renderGlance(await loadResults());
+    showFallbackWarningIfNeeded();
   }
   init();
 </script>
