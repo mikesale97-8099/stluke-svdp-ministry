@@ -20,7 +20,7 @@ Nothing money-related was deleted, just disconnected, in case a parish-approved 
 
 - `give.html` still exists but nothing links to it
 - `DONATE_URL`, the Balance Snapshot loader/sample data, `fundGoal()`, `outstandingNeedsSummary()`, and `latestSnapshot()` are all still in `site.js`, just unused — each has a `// NOT currently called` comment pointing back here
-- The workbook's Results tab can still compute `financial_assistance`; the site just doesn't display that column in the Home Visit Results table
+- The workbook's Results tab can still compute and publish `financial_assistance` and `people_helped`; the site reads both but only shows `people_helped` indirectly (via the glance-card sentence) — neither appears as a column in the Home Visit Results table
 - `LEDGER_CSV_URL` (the published Balance Snapshot tab) is still declared but not fetched by either page
 
 To bring it back: re-add the button markup, re-wire `renderGlance()` to call `buildSnapshotSentence(needs, resultsRows, snap)` with the old three-argument version (see git history), and un-comment the "NOT currently called" functions.
@@ -87,11 +87,13 @@ Overall Status | Month Posted
 
 **Tab "Results"** — already fully formula-driven inside the workbook itself (see its Instructions tab). The site expects (after `normalizeResultsRow()` maps the workbook's richer per-category Requested/Covered columns down to this shape):
 ```
-month | home_visits | families_helped | people_helped | furniture_requests | rent_requests | utility_requests | financial_assistance
+month | month_key | home_visits | people_helped | furniture_requests | rent_requests | utility_requests | financial_assistance
 ```
-The Home Visit Results table on `index.html` shows six of those seven — Home Visits, Families Helped, People Touched, Furniture Assists (furniture + special needs combined), Rent Assists, Utility Assists. `financial_assistance` is a $ figure and stays hidden (see "Money / giving — currently off" above), but the workbook can keep computing and publishing it either way.
+The **Home Visit Results** table on `index.html` shows four of those — Home Visits, Furniture Assists (furniture + special needs combined), Rent Assists, Utility Assists — filtered to **2026 only**, and **transposed**: each 2026 month is a row (most recent first), with a bolded "2026 YTD" row pinned at the top summing each column. `people_helped` and `financial_assistance` are still read and available on each row, just not shown in this table (the glance-card sentence uses `people_helped`; `financial_assistance` stays hidden per "Money / giving — currently off" above).
 
-**One thing to double-check against your actual sheet:** `normalizeResultsRow()` in `site.js` reads the richer Results tab using guessed column names like `#_families_helped`. Every other column name in that function was confirmed against the real sheet already — `families_helped` is the one new one, so if it shows as 0 on the live site, open your Results tab, check the published header text for that column, and update the matching `num('...')` line in `site.js` to match.
+Each of the four shown metrics is a **Covered** count — e.g. Rent Assists counts rent requests marked Covered — bucketed by **the month the assistance was actually rendered** (check written / item distributed), not the month it was originally requested. A request that came in July but wasn't paid until August counts toward August. That bucketing happens inside the workbook's own formulas; `site.js` just displays whatever month each row already represents.
+
+There used to be a `families_helped` column read from a guessed sheet header (`#_families_helped`) that was never confirmed against the real sheet — it always read 0, so it's been removed entirely rather than left broken.
 
 ### 1. Publish both tabs as CSV
 

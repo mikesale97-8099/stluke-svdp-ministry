@@ -252,30 +252,43 @@ Thank you!`;
     head.innerHTML = '';
     body.innerHTML = '';
 
-    // Assumes the sheet lists months chronologically ascending (June, July,
-    // August, ...) — reverse so the table reads most-recent-first.
-    const months = [...rows].reverse();
+    // 2026 only, most-recent month first.
+    const months = rows
+      .filter(m => toMonthKey(m.month_key).startsWith('2026'))
+      .reverse();
 
+    // These four are the only metrics decided on for this table (see
+    // README) — Families Helped and People Touched were dropped, and
+    // Financial Assistance was already hidden (see "Money / giving —
+    // currently off"). Each is a COVERED count, bucketed by the month the
+    // assistance was actually rendered (check written / item distributed),
+    // not the month it was originally requested — that's how the workbook's
+    // Results tab formulas already bucket them.
     const METRICS = [
       { key: 'home_visits', label: 'Home Visits' },
-      { key: 'families_helped', label: 'Families Helped' },
-      { key: 'people_helped', label: 'People Touched' },
       { key: 'furniture_requests', label: 'Furniture Assists' },
       { key: 'rent_requests', label: 'Rent Assists' },
       { key: 'utility_requests', label: 'Utility Assists' },
     ];
 
+    // Transposed from the original design: metrics are columns, each 2026
+    // month is a row, with a "2026 YTD" summary row pinned at the top.
     const headRow = document.createElement('tr');
-    headRow.innerHTML = `<th>Metric</th><th>YTD</th>` + months.map(m => `<th>${monthAbbrevFromKey(m.month_key)}</th>`).join('');
+    headRow.innerHTML = `<th>Month</th>` + METRICS.map(m => `<th>${m.label}</th>`).join('');
     head.appendChild(headRow);
 
-    METRICS.forEach(metric => {
-      const values = months.map(m => toNumber(m[metric.key]));
-      const ytd = values.reduce((sum, v) => sum + v, 0);
-      const fmt = (n) => metric.money ? `$${n.toLocaleString()}` : n.toLocaleString();
+    const ytdRow = document.createElement('tr');
+    ytdRow.className = 'ytd-row';
+    ytdRow.innerHTML = `<td>2026 YTD</td>` + METRICS.map(metric => {
+      const sum = months.reduce((total, m) => total + toNumber(m[metric.key]), 0);
+      return `<td>${sum.toLocaleString()}</td>`;
+    }).join('');
+    body.appendChild(ytdRow);
+
+    months.forEach(m => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${metric.label}</td><td class="ytd-col">${fmt(ytd)}</td>` +
-        values.map(v => `<td>${fmt(v)}</td>`).join('');
+      tr.innerHTML = `<td>${monthAbbrevFromKey(m.month_key)}</td>` +
+        METRICS.map(metric => `<td>${toNumber(m[metric.key]).toLocaleString()}</td>`).join('');
       body.appendChild(tr);
     });
   }

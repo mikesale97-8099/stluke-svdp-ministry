@@ -171,9 +171,9 @@ const SAMPLE_NEEDS = [
 // The Results tab is already fully formula-driven from the Needs tab inside
 // the workbook itself — the site just displays whatever it publishes.
 const SAMPLE_RESULTS = [
-  { month: "June 2026", home_visits: "10", families_helped: "9", people_helped: "32", furniture_requests: "3", rent_requests: "4", utility_requests: "3", financial_assistance: "1590" },
-  { month: "July 2026", home_visits: "10", families_helped: "9", people_helped: "33", furniture_requests: "3", rent_requests: "5", utility_requests: "3", financial_assistance: "395" },
-  { month: "August 2026", home_visits: "8", families_helped: "7", people_helped: "26", furniture_requests: "2", rent_requests: "4", utility_requests: "2", financial_assistance: "0" },
+  { month: "June 2026", month_key: "2026-06", home_visits: "10", people_helped: "32", furniture_requests: "3", rent_requests: "4", utility_requests: "3", financial_assistance: "1590" },
+  { month: "July 2026", month_key: "2026-07", home_visits: "10", people_helped: "33", furniture_requests: "3", rent_requests: "5", utility_requests: "3", financial_assistance: "395" },
+  { month: "August 2026", month_key: "2026-08", home_visits: "8", people_helped: "26", furniture_requests: "2", rent_requests: "4", utility_requests: "2", financial_assistance: "0" },
 ];
 
 function parseCSV(text) {
@@ -239,12 +239,11 @@ async function loadVisits() {
 // simple metric shape. This maps the richer shape down to the simple shape
 // the table renders — using the COVERED-only columns, not raw request
 // volume, per an explicit decision that these figures should reflect
-// fulfilled requests. Falls through unchanged if a row already has the
-// simple field names, so an older/simpler Results tab still works too.
-// NOTE: `#_families_helped` is a guess at the sheet's column name (after
-// CSV-publish header normalization — lowercased, spaces to underscores) —
-// if the Results tab's actual header text differs, update the key below to
-// match, the same way the other `num(...)` lines do.
+// fulfilled requests, bucketed by the month the assistance was actually
+// rendered (check written / item distributed) rather than the month it was
+// requested — that's how these columns are computed in the workbook itself.
+// Falls through unchanged if a row already has the simple field names, so
+// an older/simpler Results tab still works too.
 function normalizeResultsRow(r) {
   if (!r) return r;
   if ('home_visits' in r) return r;
@@ -253,7 +252,6 @@ function normalizeResultsRow(r) {
     month: r.month || '',
     month_key: r.month_key || '',
     home_visits: String(num('#_home_visits')),
-    families_helped: String(num('#_families_helped')),
     people_helped: String(num('#_people_helped_(covered_requests_only)')),
     furniture_requests: String(num('#_furniture_requests_covered') + num('#_special_needs_requests_covered')),
     rent_requests: String(num('#_rent_assistance_requests_covered')),
