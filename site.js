@@ -171,9 +171,9 @@ const SAMPLE_NEEDS = [
 // The Results tab is already fully formula-driven from the Needs tab inside
 // the workbook itself — the site just displays whatever it publishes.
 const SAMPLE_RESULTS = [
-  { month: "June 2026", month_key: "2026-06", home_visits: "10", people_helped: "32", furniture_requests: "3", rent_requests: "4", utility_requests: "3", financial_assistance: "1590" },
-  { month: "July 2026", month_key: "2026-07", home_visits: "10", people_helped: "33", furniture_requests: "3", rent_requests: "5", utility_requests: "3", financial_assistance: "395" },
-  { month: "August 2026", month_key: "2026-08", home_visits: "8", people_helped: "26", furniture_requests: "2", rent_requests: "4", utility_requests: "2", financial_assistance: "0" },
+  { month: "June 2026", month_key: "2026-06", home_visits: "10", families_helped: "9", people_helped: "32", furniture_requests: "3", rent_requests: "4", utility_requests: "3", financial_assistance: "1590" },
+  { month: "July 2026", month_key: "2026-07", home_visits: "10", families_helped: "9", people_helped: "33", furniture_requests: "3", rent_requests: "5", utility_requests: "3", financial_assistance: "395" },
+  { month: "August 2026", month_key: "2026-08", home_visits: "8", families_helped: "7", people_helped: "26", furniture_requests: "2", rent_requests: "4", utility_requests: "2", financial_assistance: "0" },
 ];
 
 function parseCSV(text) {
@@ -252,6 +252,7 @@ function normalizeResultsRow(r) {
     month: r.month || '',
     month_key: r.month_key || '',
     home_visits: String(num('#_home_visits')),
+    families_helped: String(num('#_families_helped_(covered_requests_only)')),
     people_helped: String(num('#_people_helped_(covered_requests_only)')),
     furniture_requests: String(num('#_furniture_requests_covered') + num('#_special_needs_requests_covered')),
     rent_requests: String(num('#_rent_assistance_requests_covered')),
@@ -439,33 +440,16 @@ function outstandingNeedsSummary(needs) {
   return { total, families: families.size };
 }
 
-// Counts DISTINCT families (visits) with at least one need marked Covered
-// during the given year — a family with several needs covered, even in
-// different months, only counts once. Uses the same "which month does a
-// Covered need count toward" fallback as the board's own rollover logic:
-// date_covered if present, else the visit's month_posted (covers Special
-// Need items, which don't have a Date Covered column yet). This lives here
-// instead of coming from the Results tab because there's no reliable
-// "families helped" column there — see the removed `families_helped` note
-// in normalizeResultsRow()'s history.
-function familiesHelpedYTD(needs, year) {
-  const familyIds = new Set();
-  (needs || []).forEach(n => {
-    if ((n.status || '').toLowerCase() !== 'covered') return;
-    const monthKey = toMonthKey(n.date_covered) || toMonthKey(n.month_posted);
-    if (!monthKey || !monthKey.startsWith(String(year))) return;
-    familyIds.add(String(n.id).split('-')[0]);
-  });
-  return familyIds.size;
-}
-
 // Builds the "This Month, At a Glance" copy — two short paragraphs, counts
 // only, no dollar figures (see DONATE_URL note above). Paragraph 1 covers
 // the most recent Results row; paragraph 2 is a running year-to-date total.
-// Needs both `resultsRows` (for visits/furniture/rent/utility/people) and
-// `needs` (for the distinct-family count, which isn't available from the
-// Results tab).
-function buildSnapshotSentence(resultsRows, needs) {
+// families_helped and people_helped both come straight from the Results
+// tab — the workbook counts a family only once, in the month its FIRST
+// request was covered, so summing families_helped across the year's rows
+// is already a correct, non-duplicated year total (no client-side
+// re-derivation from the Needs data needed, unlike an earlier version of
+// this function).
+function buildSnapshotSentence(resultsRows) {
   if (!resultsRows || !resultsRows.length) return '';
   const latest = resultsRows[resultsRows.length - 1];
   const month = latest.month || 'this month';
@@ -479,8 +463,8 @@ function buildSnapshotSentence(resultsRows, needs) {
   const p1 = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord} to understand their needs. We worked with these families and others we met in prior months and have provided for <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'}, and <strong>${rentUtility}</strong> rent/utility assistance request${rentUtility === 1 ? '' : 's'}.`;
 
   const ytdRows = resultsRows.filter(r => (toMonthKey(r.month_key) || '').startsWith(year));
+  const familiesYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.families_helped), 0);
   const peopleYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.people_helped), 0);
-  const familiesYTD = familiesHelpedYTD(needs, year);
 
   const p2 = `In <strong>${year}</strong>, we have helped <strong>${familiesYTD}</strong> famil${familiesYTD === 1 ? 'y' : 'ies'} and <strong>${peopleYTD}</strong> people in those households through your generosity. Thank you!`;
 

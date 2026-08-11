@@ -87,13 +87,13 @@ Overall Status | Month Posted
 
 **Tab "Results"** — already fully formula-driven inside the workbook itself (see its Instructions tab). The site expects (after `normalizeResultsRow()` maps the workbook's richer per-category Requested/Covered columns down to this shape):
 ```
-month | month_key | home_visits | people_helped | furniture_requests | rent_requests | utility_requests | financial_assistance
+month | month_key | home_visits | families_helped | people_helped | furniture_requests | rent_requests | utility_requests | financial_assistance
 ```
-The **Home Visit Results** table on `index.html` shows four of those — Home Visits, Furniture Assists (furniture + special needs combined), Rent Assists, Utility Assists — filtered to **2026 only**, and **transposed**: each 2026 month is a row (most recent first), with a bolded "2026 YTD" row pinned at the top summing each column. `people_helped` and `financial_assistance` are still read and available on each row, just not shown in this table (the glance-card sentence uses `people_helped`; `financial_assistance` stays hidden per "Money / giving — currently off" above).
+The **Home Visit Results** table on `index.html` shows four of those — Home Visits, Furniture Assists (furniture + special needs combined), Rent Assists, Utility Assists — filtered to **2026 only**, and **transposed**: each 2026 month is a row (most recent first), with a bolded "2026 YTD" row pinned at the top summing each column. `families_helped`, `people_helped`, and `financial_assistance` are still read and available on each row, just not shown in this table — the glance-card sentence uses `families_helped` and `people_helped` (see "This Month, At a Glance" below); `financial_assistance` stays hidden per "Money / giving — currently off" above.
 
 Each of the four shown metrics is a **Covered** count — e.g. Rent Assists counts rent requests marked Covered — bucketed by **the month the assistance was actually rendered** (check written / item distributed), not the month it was originally requested. A request that came in July but wasn't paid until August counts toward August. That bucketing happens inside the workbook's own formulas; `site.js` just displays whatever month each row already represents.
 
-There used to be a `families_helped` column read from a guessed sheet header (`#_families_helped`) that was never confirmed against the real sheet — it always read 0, so it's been removed entirely rather than left broken.
+`families_helped` reads from `# Families Helped (Covered Requests Only)` — a family (furniture/special/rent/utility, any type) is counted once, in the month its *first* request was covered, even if it has other requests covered in later months. That dedup logic lives entirely in the workbook's own formula. (An earlier version of this site tried to derive a families-helped figure client-side from the Needs data, using a guessed, unconfirmed column name that turned out not to exist and always read 0 — that's been fully replaced by this real column now that it exists.)
 
 ### 1. Publish both tabs as CSV
 
@@ -118,9 +118,9 @@ If a URL is left blank or the fetch fails for any reason, the page quietly falls
 
 ## This Month, At a Glance
 
-Both pages show a compact "at a glance" card with **two paragraphs**, built by `buildSnapshotSentence(resultsRows, needs)` in `site.js`. No dollar amounts (see "Money / giving — currently off" above).
+Both pages show a compact "at a glance" card with **two paragraphs**, built by `buildSnapshotSentence(resultsRows)` in `site.js`. No dollar amounts (see "Money / giving — currently off" above).
 
 1. **This month:** home visits, plus furniture/household and rent/utility requests provided — pulled from the latest row of the **Results** tab. The copy explicitly notes that these are requests fulfilled this month, which may include ones collected in prior months (see the Results-tab note above on Covered-month bucketing).
-2. **Year-to-date:** families and people helped so far in the current year. People-YTD sums `people_helped` across the year's Results rows. Families-YTD is *not* from the Results tab — there's no reliable "families helped" column there (a prior attempt at one, `#_families_helped`, was a guessed header that never matched the real sheet and always read 0; it's been removed). Instead, `familiesHelpedYTD()` computes it directly from the Needs data: any need marked Covered this year contributes its family (the shared `<servware_id>-X` id prefix) to a Set, so a family with several things covered — even in different months — only counts once.
+2. **Year-to-date:** families and people helped so far in the current year — both simple sums of `families_helped` and `people_helped` across the year's Results rows. Summing `families_helped` across months is safe (no double-counting) because the workbook already counts each family only once, in the month its first request was covered — see the Results-tab note above.
 
 The workbook's **Balance Snapshot** tab (`snapshot_date | funds_available`, with `outstanding_needs`, `assistance_provided_this_month`, and `available_balance` computed by formula from the Needs tab's Date Covered columns — see the workbook's Instructions tab) still exists and can still be published as CSV, but the site doesn't currently read it. It's what a future funds-tracking version would plug back into `LEDGER_CSV_URL` in `site.js`.
