@@ -97,6 +97,11 @@ body {
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
   padding: 3px 10px; border-radius: 10px; margin-bottom: 10px; color: #fff;
 }
+.page-board .card-date {
+  position: absolute; top: 14px; right: 16px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.03em;
+  color: var(--inktext); opacity: 0.55;
+}
 .page-board .amount-note { font-size: 12px; color: var(--inktext); opacity: 0.75; margin: 8px 0 0; }
 .page-board .empty-note {
   text-align: center; color: var(--paperline); font-family: 'IBM Plex Mono', monospace;
@@ -408,6 +413,11 @@ body {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
   text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
   padding: 3px 9px; border-radius: 10px; margin-bottom: 8px; color: #fff;
+}
+.page-index .card-date {
+  position: absolute; top: 12px; right: 14px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.03em;
+  color: var(--inktext); opacity: 0.55;
 }
 .page-index .amount-note { font-size: 11px; color: var(--inktext); opacity: 0.75; margin: 6px 0 0; }
 .page-index .warehouse-tag {

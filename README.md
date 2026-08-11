@@ -76,16 +76,20 @@ Overall Status | Month Posted
 `site.js` expands each visit row into board cards (one per need type that's flagged "Yes"), so a family needing both rent help and a bed shows as two separate cards, sharing the same `Summary` text.
 
 - **Household items are tracked two ways:** most go through the SVdP central warehouse (Warehouse columns) — no parishioner action needed, tracked purely for record-keeping. Occasionally an item isn't available through the warehouse and needs a parishioner to step up (Special Need columns). **The board shows only ONE household card per visit** — the Special Need if one exists (with the "I can help" claim button), otherwise the Warehouse item as a plain, non-interactive "SVdP Warehouse" info card. Both still count toward the `furniture_requests` figure in Results either way, even though only one ever renders on the board.
+- Every card shows a small **date badge** in its upper-right corner — the visit's `Initial Home Visit Date`, formatted like "Aug 17" (`formatMonthDay()` in `site.js`).
+- **Board sort order:** Special Need cards always come first (regardless of status), then everything Open/Partially Covered, then everything Covered — newest visit first within each of those three tiers (`boardPriority()` / `sortForBoard()` in `site.js`).
 - **Rent/Utility items** render as status-badge cards feeding the shared fund thermometer, same as before — `Rent Amount Needed` / `Utility Need Amount` are approximate context figures only, not per-family accounts, and `Rent Need Status` / `Utility Need Status` are the manual Open/Partially Covered/Covered dropdowns from the workbook.
 - The **note-worthy schema change:** there's no more `urgency` field. Card color/priority now comes entirely from status (Open = most urgent, Partially Covered, Covered = resolved) instead of a separate high/medium/low rating.
 
 **Monthly rollover** (unchanged in spirit): a need Covered in a *prior* month disappears from the board automatically; Open/Partially Covered needs keep showing regardless of age; a same-month Covered win still shows before it rolls off. This uses each expanded need's `month_posted`, taken straight from the workbook's calculated `Month Posted` column.
 
-**Tab "Results"** — already fully formula-driven inside the workbook itself (see its Instructions tab). The site just displays whatever gets published:
+**Tab "Results"** — already fully formula-driven inside the workbook itself (see its Instructions tab). The site expects (after `normalizeResultsRow()` maps the workbook's richer per-category Requested/Covered columns down to this shape):
 ```
-month | home_visits | people_helped | furniture_requests | rent_utility_requests | financial_assistance
+month | home_visits | families_helped | people_helped | furniture_requests | rent_requests | utility_requests | financial_assistance
 ```
-The MVP's Home Visit Results table on `index.html` only shows the first four columns (`financial_assistance` is a $ figure — see "Money / giving — currently off" above). The workbook can keep computing and publishing it either way; the site just skips that one column.
+The Home Visit Results table on `index.html` shows six of those seven — Home Visits, Families Helped, People Touched, Furniture Assists (furniture + special needs combined), Rent Assists, Utility Assists. `financial_assistance` is a $ figure and stays hidden (see "Money / giving — currently off" above), but the workbook can keep computing and publishing it either way.
+
+**One thing to double-check against your actual sheet:** `normalizeResultsRow()` in `site.js` reads the richer Results tab using guessed column names like `#_families_helped`. Every other column name in that function was confirmed against the real sheet already — `families_helped` is the one new one, so if it shows as 0 on the live site, open your Results tab, check the published header text for that column, and update the matching `num('...')` line in `site.js` to match.
 
 ### 1. Publish both tabs as CSV
 
