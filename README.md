@@ -14,7 +14,7 @@ The conference runs on a monthly operating allowance from the parish, and the pa
 
 - Has **no "Give" button or donate link** anywhere (removed from both `board.html` and `index.html`)
 - Shows **no dollar amounts** on Rent/Utility cards — just the status badge, title, and description
-- The "This Month, At a Glance" card shows **counts only** — home visits, people helped, furniture/household items provided, rent/utility requests assisted — pulled straight from the latest Results row
+- The "This Month, At a Glance" card shows **counts only** — see the dedicated "This Month, At a Glance" section below for exactly what it computes and from where
 
 Nothing money-related was deleted, just disconnected, in case a parish-approved giving feature comes back later (e.g. a separate "We Are SVdP" page):
 
@@ -23,7 +23,7 @@ Nothing money-related was deleted, just disconnected, in case a parish-approved 
 - The workbook's Results tab can still compute and publish `financial_assistance` and `people_helped`; the site reads both but only shows `people_helped` indirectly (via the glance-card sentence) — neither appears as a column in the Home Visit Results table
 - `LEDGER_CSV_URL` (the published Balance Snapshot tab) is still declared but not fetched by either page
 
-To bring it back: re-add the button markup, re-wire `renderGlance()` to call `buildSnapshotSentence(needs, resultsRows, snap)` with the old three-argument version (see git history), and un-comment the "NOT currently called" functions.
+To bring it back: re-add the button markup, re-wire `renderGlance()` to include funds-related copy again (see git history for the old three-argument `buildSnapshotSentence(needs, resultsRows, snap)`), and un-comment the "NOT currently called" functions.
 
 ## View it locally
 
@@ -118,6 +118,9 @@ If a URL is left blank or the fetch fails for any reason, the page quietly falls
 
 ## This Month, At a Glance
 
-Both pages show a compact "at a glance" card with a one-sentence summary — home visits, people helped, and items/assistance provided, all pulled from the latest row of the **Results** tab. No dollar amounts (see "Money / giving — currently off" above).
+Both pages show a compact "at a glance" card with **two paragraphs**, built by `buildSnapshotSentence(resultsRows, needs)` in `site.js`. No dollar amounts (see "Money / giving — currently off" above).
+
+1. **This month:** home visits, plus furniture/household and rent/utility requests provided — pulled from the latest row of the **Results** tab. The copy explicitly notes that these are requests fulfilled this month, which may include ones collected in prior months (see the Results-tab note above on Covered-month bucketing).
+2. **Year-to-date:** families and people helped so far in the current year. People-YTD sums `people_helped` across the year's Results rows. Families-YTD is *not* from the Results tab — there's no reliable "families helped" column there (a prior attempt at one, `#_families_helped`, was a guessed header that never matched the real sheet and always read 0; it's been removed). Instead, `familiesHelpedYTD()` computes it directly from the Needs data: any need marked Covered this year contributes its family (the shared `<servware_id>-X` id prefix) to a Set, so a family with several things covered — even in different months — only counts once.
 
 The workbook's **Balance Snapshot** tab (`snapshot_date | funds_available`, with `outstanding_needs`, `assistance_provided_this_month`, and `available_balance` computed by formula from the Needs tab's Date Covered columns — see the workbook's Instructions tab) still exists and can still be published as CSV, but the site doesn't currently read it. It's what a future funds-tracking version would plug back into `LEDGER_CSV_URL` in `site.js`.

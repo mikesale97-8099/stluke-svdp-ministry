@@ -439,29 +439,52 @@ function outstandingNeedsSummary(needs) {
   return { total, families: families.size };
 }
 
-// Builds the "This Month, At a Glance" sentence — counts only, no dollar
-// figures. The conference runs on a monthly parish allowance and doesn't
-// fundraise on its own, so this deliberately doesn't mention funds
-// available or outstanding $ need (see DONATE_URL note above). Pulls
-// straight from the most recent Results row.
-function buildSnapshotSentence(resultsRows) {
+// Counts DISTINCT families (visits) with at least one need marked Covered
+// during the given year — a family with several needs covered, even in
+// different months, only counts once. Uses the same "which month does a
+// Covered need count toward" fallback as the board's own rollover logic:
+// date_covered if present, else the visit's month_posted (covers Special
+// Need items, which don't have a Date Covered column yet). This lives here
+// instead of coming from the Results tab because there's no reliable
+// "families helped" column there — see the removed `families_helped` note
+// in normalizeResultsRow()'s history.
+function familiesHelpedYTD(needs, year) {
+  const familyIds = new Set();
+  (needs || []).forEach(n => {
+    if ((n.status || '').toLowerCase() !== 'covered') return;
+    const monthKey = toMonthKey(n.date_covered) || toMonthKey(n.month_posted);
+    if (!monthKey || !monthKey.startsWith(String(year))) return;
+    familyIds.add(String(n.id).split('-')[0]);
+  });
+  return familyIds.size;
+}
+
+// Builds the "This Month, At a Glance" copy — two short paragraphs, counts
+// only, no dollar figures (see DONATE_URL note above). Paragraph 1 covers
+// the most recent Results row; paragraph 2 is a running year-to-date total.
+// Needs both `resultsRows` (for visits/furniture/rent/utility/people) and
+// `needs` (for the distinct-family count, which isn't available from the
+// Results tab).
+function buildSnapshotSentence(resultsRows, needs) {
   if (!resultsRows || !resultsRows.length) return '';
   const latest = resultsRows[resultsRows.length - 1];
   const month = latest.month || 'this month';
+  const year = (toMonthKey(latest.month_key) || '').slice(0, 4) || String(new Date().getFullYear());
+
   const visits = toNumber(latest.home_visits);
-  const people = toNumber(latest.people_helped);
   const furniture = toNumber(latest.furniture_requests);
   const rentUtility = toNumber(latest.rent_requests) + toNumber(latest.utility_requests);
   const visitWord = visits === 1 ? 'home' : 'homes';
-  const peopleWord = people === 1 ? 'neighbor' : 'neighbors';
 
-  let s = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord} and helped <strong>${people}</strong> ${peopleWord}`;
-  const parts = [];
-  if (furniture > 0) parts.push(`<strong>${furniture}</strong> furniture/household item${furniture === 1 ? '' : 's'}`);
-  if (rentUtility > 0) parts.push(`<strong>${rentUtility}</strong> rent or utility assistance request${rentUtility === 1 ? '' : 's'}`);
-  s += parts.length ? `, providing ${parts.join(' and ')}.` : `.`;
+  const p1 = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord} to understand their needs. We worked with these families and others we met in prior months and have provided for <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'}, and <strong>${rentUtility}</strong> rent/utility assistance request${rentUtility === 1 ? '' : 's'}.`;
 
-  return `<p>${s}</p>`;
+  const ytdRows = resultsRows.filter(r => (toMonthKey(r.month_key) || '').startsWith(year));
+  const peopleYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.people_helped), 0);
+  const familiesYTD = familiesHelpedYTD(needs, year);
+
+  const p2 = `In <strong>${year}</strong>, we have helped <strong>${familiesYTD}</strong> famil${familiesYTD === 1 ? 'y' : 'ies'} and <strong>${peopleYTD}</strong> people in those households through your generosity. Thank you!`;
+
+  return `<p>${p1}</p><p>${p2}</p>`;
 }
 
 // Parses a date string into a sortable "YYYY-MM-DD" form regardless of the

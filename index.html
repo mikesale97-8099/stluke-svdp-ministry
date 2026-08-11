@@ -293,9 +293,9 @@ Thank you!`;
     });
   }
 
-  function renderGlance(resultsRows) {
+  function renderGlance(resultsRows, needs) {
     const sentenceEl = document.getElementById('snapshot-sentence');
-    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows);
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows, needs);
   }
 
   async function init() {
@@ -303,7 +303,7 @@ Thank you!`;
     const results = await loadResults();
     renderPreview(needs);
     renderResults(results);
-    renderGlance(results);
+    renderGlance(results, needs);
   }
   init();
 </script>
