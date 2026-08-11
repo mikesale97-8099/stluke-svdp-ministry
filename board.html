@@ -21,17 +21,10 @@
           <div class="legend-text"><strong>Furnishings &amp; household items</strong> are usually filled through SVdP's central warehouse — no action needed from you. Once in a while a special item like a microwave or a high chair needs a parishioner's help — those cards have an <em>"I can help"</em> button.</div>
         </div>
         <div class="legend-item">
-          <div class="legend-icon">&#128176;</div>
-          <div class="legend-text"><strong>Rent &amp; utility needs</strong> are met through gifts to the shared SVdP fund. Any amount you can give is appreciated — even a few dollars makes a real difference. Use the button below to help.</div>
+          <div class="legend-icon">&#128153;</div>
+          <div class="legend-text"><strong>Rent &amp; utility needs</strong> are covered through our conference's monthly parish assistance fund — shown here so our parish family can see the difference this ministry makes and keep these neighbors in their prayers.</div>
         </div>
       </div>
-
-      <a href="#" class="fund-give-btn" id="fund-give-btn" target="_blank" rel="noopener">Give to SVdP &rarr;</a>
-      <p class="thank-you-note">Thank you for your compassion and generosity.</p>
-      <details class="giving-details">
-        <summary>How does giving work?</summary>
-        <p>Gifts go into one shared SVdP fund on the parish giving site — there's no way to earmark a gift to a single family. Vincentians update the snapshot behind this by hand periodically, so it may lag a few days behind your giving.</p>
-      </details>
     </div>
 
     <div class="section-label board-label">Needs Bulletin Board</div>
@@ -132,12 +125,10 @@ Thank you!`;
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${color};border-color:${color};">${status.toUpperCase()}</div>
-      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
-        ${need.amount ? `<p class="amount-note">Approx. $${need.amount} — from the shared SVdP fund</p>` : ''}
       </div>
     `;
     // Share link hidden for now, per request — keep makeShareLink() intact
@@ -156,7 +147,6 @@ Thank you!`;
     card.className = 'card' + (isClaimed ? ' claimed' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${sheetCovered ? color : 'var(--sage)'};border-color:${sheetCovered ? color : 'var(--sage)'};${isClaimed ? '' : 'display:none;'}">${sheetCovered ? 'COVERED' : 'CLAIMED'}</div>
-      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${need.status || 'Open'}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -184,7 +174,6 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
-      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -257,7 +246,6 @@ Thank you!`;
       const card = document.createElement('div');
       card.className = 'card served-card';
       card.innerHTML = `
-        ${cardDateHTML(need)}
         <div>
           <div class="served-tag">&#10003; Provided</div>
           <h3 class="card-title">${need.title || ''}</h3>
@@ -270,16 +258,9 @@ Thank you!`;
     });
   }
 
-  function renderGlance(needs, resultsRows, snapshotRows) {
-    const snap = latestSnapshot(snapshotRows);
+  function renderGlance(resultsRows) {
     const sentenceEl = document.getElementById('snapshot-sentence');
-    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(needs, resultsRows, snap);
-
-    const btn = document.getElementById('fund-give-btn');
-    if (btn) {
-      if (DONATE_URL) btn.href = DONATE_URL;
-      else { btn.removeAttribute('target'); btn.href = '#'; btn.onclick = (e) => e.preventDefault(); }
-    }
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows);
   }
 
   async function init() {
@@ -287,7 +268,7 @@ Thank you!`;
     renderFilters();
     renderBoard();
     renderServed(NEEDS);
-    renderGlance(NEEDS, await loadResults(), await loadBalanceSnapshots());
+    renderGlance(await loadResults());
   }
   init();
 </script>

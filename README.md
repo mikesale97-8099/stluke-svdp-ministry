@@ -4,9 +4,26 @@ Five files, no build step required:
 
 - `index.html` — the main content page (mission, needs preview, next drive, home visit results, campaigns, sister conferences, volunteer CTA) — this is what a QR code on a bulletin flyer should point to
 - `board.html` — the dedicated, fully-interactive Needs Bulletin Board sub-page (filters + "I can help" claim interaction). Linked to from index.html's needs preview section.
-- `give.html` — a **placeholder** giving page mockup, styled to look like a page on St. Luke's site, with "SVdP — Families in Need" pre-selected as the fund. `DONATE_URL` in `site.js` currently points here. **Swap it for St. Luke's real online giving link** once that platform has an SVdP designation set up — this page does not process real payments, and says so clearly at the top.
+- `give.html` — a **placeholder, currently unlinked** giving page mockup. Not part of the live MVP (see "Money / giving — currently off" below) — kept in the repo in case a future version needs it.
 - `site.js` — shared config and data-loading logic used by both pages (see "Google Sheet" section below)
 - `style.css` — shared stylesheet for both pages. Background is St. Luke's brand blue (`#25408E`, pulled from stluke.org). A few components (`.card`, `.glance-card`, `.header`, etc.) render at different sizes on each page, so those are scoped under `.page-board` / `.page-index` (set on each page's `<body>` tag) rather than sharing one rule — safe to edit either page's version without affecting the other.
+
+## Money / giving — currently off
+
+The conference runs on a monthly operating allowance from the parish, and the parish has asked ministries not to fundraise independently (it creates competition with the parish's own giving/operating budget). So the live MVP:
+
+- Has **no "Give" button or donate link** anywhere (removed from both `board.html` and `index.html`)
+- Shows **no dollar amounts** on Rent/Utility cards — just the status badge, title, and description
+- The "This Month, At a Glance" card shows **counts only** — home visits, people helped, furniture/household items provided, rent/utility requests assisted — pulled straight from the latest Results row
+
+Nothing money-related was deleted, just disconnected, in case a parish-approved giving feature comes back later (e.g. a separate "We Are SVdP" page):
+
+- `give.html` still exists but nothing links to it
+- `DONATE_URL`, the Balance Snapshot loader/sample data, `fundGoal()`, `outstandingNeedsSummary()`, and `latestSnapshot()` are all still in `site.js`, just unused — each has a `// NOT currently called` comment pointing back here
+- The workbook's Results tab can still compute `financial_assistance`; the site just doesn't display that column in the Home Visit Results table
+- `LEDGER_CSV_URL` (the published Balance Snapshot tab) is still declared but not fetched by either page
+
+To bring it back: re-add the button markup, re-wire `renderGlance()` to call `buildSnapshotSentence(needs, resultsRows, snap)` with the old three-argument version (see git history), and un-comment the "NOT currently called" functions.
 
 ## View it locally
 
@@ -68,6 +85,7 @@ Overall Status | Month Posted
 ```
 month | home_visits | people_helped | furniture_requests | rent_utility_requests | financial_assistance
 ```
+The MVP's Home Visit Results table on `index.html` only shows the first four columns (`financial_assistance` is a $ figure — see "Money / giving — currently off" above). The workbook can keep computing and publishing it either way; the site just skips that one column.
 
 ### 1. Publish both tabs as CSV
 
@@ -84,31 +102,14 @@ Open `site.js`, find this block near the top:
 ```js
 const NEEDS_CSV_URL = "";
 const RESULTS_CSV_URL = "";
-const DONATE_URL = "";
-const FUND_RAISED = 300;
-const FUND_RAISED_MONTH = "2026-07";
 ```
 
-Paste your two published CSV URLs between the quotes. Also paste in your parish giving site's SVdP donation link as `DONATE_URL`. Update `FUND_RAISED` and `FUND_RAISED_MONTH` by hand each month as you check the parish giving system. Save and re-upload `site.js` to GitHub — no need to touch `index.html` or `board.html`.
+Paste your two published CSV URLs between the quotes. Save and re-upload `site.js` to GitHub — no need to touch `index.html` or `board.html`. (`DONATE_URL` and `LEDGER_CSV_URL` also live in this block, but neither is currently used — see "Money / giving — currently off" above.)
 
 If a URL is left blank or the fetch fails for any reason, the page quietly falls back to the built-in sample data, so it never shows a broken page.
 
 ## This Month, At a Glance
 
-Both pages show a compact "at a glance" card with a two-paragraph summary — home visits and assistance given this month, then available funds vs. outstanding requests — instead of a separate gauge widget (an earlier design; removed in favor of plain sentences, which tested better).
+Both pages show a compact "at a glance" card with a one-sentence summary — home visits, people helped, and items/assistance provided, all pulled from the latest row of the **Results** tab. No dollar amounts (see "Money / giving — currently off" above).
 
-This is deliberately **not** a transactional ledger — the conference's detailed money-tracking lives elsewhere with whoever minds the funds. It reads from the workbook's **Balance Snapshot** tab, which only has **two manual columns**:
-
-```
-snapshot_date | funds_available
-```
-
-Everything else on that tab (`outstanding_needs`, `assistance_provided_this_month`, `available_balance`) is a **formula** computed from the Needs tab's `Rent Date Covered` / `Utility Date Covered` columns — see the workbook's own Instructions tab for the exact formulas. The site itself only ever reads `snapshot_date` and `funds_available` from this tab; the other columns exist for the treasurer's own reference and aren't consumed by `site.js`.
-
-Because those formulas ask a historical question ("was this still outstanding as of THIS row's date?") using real covered-dates rather than a status that keeps changing, **old rows never need to be manually locked or frozen** — add a new row each week and every row, old or new, stays correct indefinitely.
-
-Publish the tab as CSV the same way as the others, then paste its URL into `site.js`:
-
-```js
-const LEDGER_CSV_URL = "";
-```
+The workbook's **Balance Snapshot** tab (`snapshot_date | funds_available`, with `outstanding_needs`, `assistance_provided_this_month`, and `available_balance` computed by formula from the Needs tab's Date Covered columns — see the workbook's Instructions tab) still exists and can still be published as CSV, but the site doesn't currently read it. It's what a future funds-tracking version would plug back into `LEDGER_CSV_URL` in `site.js`.

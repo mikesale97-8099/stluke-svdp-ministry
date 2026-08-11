@@ -46,12 +46,6 @@
       <div class="glance-card">
         <div class="fund-label">This Month, At a Glance</div>
         <div class="snapshot-sentence" id="snapshot-sentence"></div>
-        <a href="#" class="fund-give-btn" id="fund-give-btn" target="_blank" rel="noopener">Give to SVdP &rarr;</a>
-        <p class="thank-you-note">Thank you for your compassion and generosity.</p>
-        <details class="giving-details">
-          <summary>How does giving work?</summary>
-          <p>Gifts go into one shared SVdP fund on the parish giving site — there's no way to earmark a gift to a single family. Vincentians update the snapshot behind this by hand periodically, so it may lag a few days behind your giving.</p>
-        </details>
       </div>
       <div class="section-label board-label">Needs Bulletin Board</div>
       <div class="preview-board" id="preview-board"></div>
@@ -166,12 +160,10 @@ Thank you!`;
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${color};border-color:${color};">${status.toUpperCase()}</div>
-      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
         <p class="card-detail">${need.detail || ''}</p>
-        ${need.amount ? `<p class="amount-note">Approx. $${need.amount} — from the shared SVdP fund</p>` : ''}
       </div>
     `;
     return card;
@@ -185,7 +177,6 @@ Thank you!`;
     card.className = 'card' + (isClaimed ? ' claimed' : '');
     card.innerHTML = `
       <div class="stamp" style="color:${sheetCovered ? color : 'var(--sage)'};border-color:${sheetCovered ? color : 'var(--sage)'};${isClaimed ? '' : 'display:none;'}">${sheetCovered ? 'COVERED' : 'CLAIMED'}</div>
-      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${need.status || 'Open'}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -208,7 +199,6 @@ Thank you!`;
     const card = document.createElement('div');
     card.className = 'card' + (isCovered ? ' covered' : '');
     card.innerHTML = `
-      ${cardDateHTML(need)}
       <div>
         <div class="status-badge" style="background:${color};">${status}</div>
         <h3 class="card-title">${need.title || ''}</h3>
@@ -251,23 +241,21 @@ Thank you!`;
     });
   }
 
-  function renderResults(monthlyResults) {
+  function renderResults(rows) {
     const head = document.getElementById('results-head');
     const body = document.getElementById('results-body');
     head.innerHTML = '';
     body.innerHTML = '';
 
-    // computeMonthlyResults() already returns oldest-first — reverse so the
-    // table reads most-recent-first.
-    const months = [...monthlyResults].reverse();
+    // Assumes the sheet lists months chronologically ascending (June, July,
+    // August, ...) — reverse so the table reads most-recent-first.
+    const months = [...rows].reverse();
 
     const METRICS = [
       { key: 'home_visits', label: 'Home Visits' },
-      { key: 'families_helped', label: 'Families Helped' },
-      { key: 'people_touched', label: 'People Touched' },
-      { key: 'furniture_covered', label: 'Furniture Requests Covered' },
-      { key: 'rent_covered', label: 'Rent Requests Covered' },
-      { key: 'utility_covered', label: 'Utility Requests Covered' },
+      { key: 'people_helped', label: 'People Helped' },
+      { key: 'furniture_requests', label: 'Furniture / Home Requests' },
+      { key: 'rent_utility_requests', label: 'Rent / Utility Requests' },
     ];
 
     const headRow = document.createElement('tr');
@@ -275,34 +263,27 @@ Thank you!`;
     head.appendChild(headRow);
 
     METRICS.forEach(metric => {
-      const values = months.map(m => m[metric.key] || 0);
+      const values = months.map(m => toNumber(m[metric.key]));
       const ytd = values.reduce((sum, v) => sum + v, 0);
+      const fmt = (n) => metric.money ? `$${n.toLocaleString()}` : n.toLocaleString();
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${metric.label}</td><td class="ytd-col">${ytd.toLocaleString()}</td>` +
-        values.map(v => `<td>${v.toLocaleString()}</td>`).join('');
+      tr.innerHTML = `<td>${metric.label}</td><td class="ytd-col">${fmt(ytd)}</td>` +
+        values.map(v => `<td>${fmt(v)}</td>`).join('');
       body.appendChild(tr);
     });
   }
 
-  function renderGlance(needs, resultsRows, snapshotRows) {
-    const snap = latestSnapshot(snapshotRows);
+  function renderGlance(resultsRows) {
     const sentenceEl = document.getElementById('snapshot-sentence');
-    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(needs, resultsRows, snap);
-
-    const btn = document.getElementById('fund-give-btn');
-    if (btn) {
-      if (DONATE_URL) btn.href = DONATE_URL;
-      else { btn.removeAttribute('target'); btn.href = '#'; btn.onclick = (e) => e.preventDefault(); }
-    }
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows);
   }
 
   async function init() {
-    const visits = await loadVisits();
-    const needs = expandVisitsToNeeds(visits);
+    const needs = await loadNeeds();
     const results = await loadResults();
     renderPreview(needs);
-    renderResults(computeMonthlyResults(visits));
-    renderGlance(needs, results, await loadBalanceSnapshots());
+    renderResults(results);
+    renderGlance(results);
   }
   init();
 </script>

@@ -6,13 +6,16 @@
 // ============================================================
 const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1302127648&single=true&output=csv";
 const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1433551626&single=true&output=csv";
-const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=49249456&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab (feeds the balance gauge)
+const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=49249456&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab — NOT currently loaded by either page (see note above DONATE_URL); left here so it's a one-line change to bring back
 
-// Where "Give" buttons send people — the ONE shared SVdP giving option on the
-// parish site. There is no way to earmark a gift to a specific family: all
-// gifts go into one fund that SVdP draws from, with a natural lag between
-// giving and disbursement.
-const DONATE_URL = "give.html"; // placeholder — swap for St. Luke's real online giving link once the SVdP designation is live there
+// NOT currently used. The parish gives our conference a monthly operating
+// allowance and has asked ministries not to fundraise independently (it
+// creates competition with the parish's own giving/operating budget), so
+// the MVP does not solicit donations anywhere on the site. Kept here —
+// along with give.html itself and the balance-snapshot code below — in
+// case a future, parish-approved version (e.g. a "We Are SVdP" page) needs
+// it again.
+const DONATE_URL = "give.html";
 
 // When someone clicks "I can help" on a Special Need item, we open a
 // pre-filled email to this address so a real person actually finds out.
@@ -71,27 +74,6 @@ function monthAbbrevFromKey(key) {
   const d = new Date(Number(m[1]), Number(m[2]) - 1, 1);
   const abbrev = d.toLocaleString('en-US', { month: 'short' });
   return `${abbrev}-${m[1].slice(-2)}`;
-}
-
-// A full date string in whatever format the sheet exported (e.g. "8/7/26")
-// -> "Aug 7", for the small date label in a card's corner. No year, no
-// leading zero on the day — this is a quick "when" glance, not a precise
-// record (the full date is already in the underlying data if ever needed).
-function formatShortDate(dateStr) {
-  const iso = parseDateSortable(dateStr);
-  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return '';
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  const month = d.toLocaleString('en-US', { month: 'short' });
-  return `${month} ${Number(m[3])}`;
-}
-
-// Small shared HTML snippet used by every card renderer (board + preview +
-// archive) so the date badge stays visually and behaviorally identical
-// everywhere a card appears, rather than reimplemented per render function.
-function cardDateHTML(need) {
-  const label = formatShortDate(need.date_posted);
-  return label ? `<div class="card-date">${label}</div>` : '';
 }
 
 // ------------------------------------------------------------
@@ -352,68 +334,16 @@ async function loadNeeds() {
   return expandVisitsToNeeds(visits);
 }
 
-// Computes month-by-month counts directly from the Needs tab's raw visit
-// rows — Home Visits, Families Helped, People Touched, and each category's
-// Covered count — rather than depending on the Results tab having any
-// particular column layout. "Families Helped" in particular has no
-// equivalent column there. Uses the same "any one covered request counts
-// the family" rule already validated for people-helped counts, just
-// counting 1 per qualifying visit instead of summing household size for
-// the family total (and still summing household size separately for the
-// people-touched total).
-function computeMonthlyResults(visits) {
-  const byMonth = {};
-  visits.forEach(v => {
-    const monthKey = toMonthKey(v.month_posted);
-    if (!monthKey) return;
-    if (!byMonth[monthKey]) {
-      byMonth[monthKey] = {
-        month_key: monthKey,
-        home_visits: 0, families_helped: 0, people_touched: 0,
-        furniture_covered: 0, rent_covered: 0, utility_covered: 0,
-      };
-    }
-    const m = byMonth[monthKey];
-    m.home_visits += 1;
-
-    const householdSize = toNumber(v['#_in_household']) || 0;
-
-    const warehouseCoveredThisMonth =
-      (v.warehouse_status || '').toLowerCase() === 'covered' &&
-      toMonthKey(v.distribution_center_request_date) === monthKey;
-    // Special Need has no Date Covered column yet (documented known gap) —
-    // falls back to month_posted, same as the rest of the site does.
-    const specialCoveredThisMonth =
-      (v.special_need_status || '').toLowerCase() === 'covered' &&
-      monthKey === toMonthKey(v.month_posted);
-    const rentCoveredThisMonth =
-      (v.rent_need_status || '').toLowerCase() === 'covered' &&
-      toMonthKey(v.rent_date_covered) === monthKey;
-    const utilityCoveredThisMonth =
-      (v.utility_need_status || '').toLowerCase() === 'covered' &&
-      toMonthKey(v.utility_date_covered) === monthKey;
-
-    if (warehouseCoveredThisMonth) m.furniture_covered += 1;
-    if (specialCoveredThisMonth) m.furniture_covered += 1;
-    if (rentCoveredThisMonth) m.rent_covered += 1;
-    if (utilityCoveredThisMonth) m.utility_covered += 1;
-
-    if (warehouseCoveredThisMonth || specialCoveredThisMonth || rentCoveredThisMonth || utilityCoveredThisMonth) {
-      m.families_helped += 1;
-      m.people_touched += householdSize;
-    }
-  });
-  return Object.values(byMonth).sort((a, b) => a.month_key.localeCompare(b.month_key));
-}
-
 // ------------------------------------------------------------
-// Balance Snapshot / balance gauge — a simple hand-reported snapshot
-// (not a transactional ledger; detailed money-tracking lives elsewhere
-// with whoever minds the funds). Separate from the "known need"
-// thermometer above. The sheet itself now also derives outstanding_needs,
-// assistance_provided_this_month, and available_balance via formulas keyed
-// on the Needs tab's Date Covered columns — but the site never reads those,
-// it only needs snapshot_date and funds_available from here.
+// Balance Snapshot / balance gauge — NOT currently used by either page
+// (MVP dropped all $ display; see DONATE_URL note near the top of this
+// file). Left intact, including the sample data and loader, so a future
+// version can wire it back in without rebuilding this part. A simple
+// hand-reported snapshot (not a transactional ledger; detailed
+// money-tracking lives elsewhere with whoever minds the funds). The sheet
+// itself also derives outstanding_needs, assistance_provided_this_month,
+// and available_balance via formulas keyed on the Needs tab's Date Covered
+// columns — the site only ever read snapshot_date and funds_available.
 // ------------------------------------------------------------
 const SAMPLE_BALANCE_SNAPSHOTS = [
   { snapshot_date: "2026-07-05", funds_available: "1700" },
@@ -425,10 +355,10 @@ const SAMPLE_BALANCE_SNAPSHOTS = [
 
 async function loadBalanceSnapshots() { return loadCSV(LEDGER_CSV_URL, SAMPLE_BALANCE_SNAPSHOTS); }
 
-// Uses the LAST row (most recent snapshot) for funds_available — that part
-// stays manual/treasurer-reported. Outstanding needs and family count come
-// from the Needs tab directly (see outstandingNeedsSummary below) — they
-// have to come from the same live source or they'd drift out of sync.
+// NOT currently called — kept alongside loadBalanceSnapshots() above for a
+// possible future funds-tracking feature (see DONATE_URL note near the top
+// of this file). Uses the LAST row (most recent snapshot) for
+// funds_available, which was manual/treasurer-reported.
 function latestSnapshot(rows) {
   return rows.length ? rows[rows.length - 1] : null;
 }
@@ -475,8 +405,9 @@ function servedNeeds(needs) {
   return needs.filter(n => (n.status || '').toLowerCase() === 'covered');
 }
 
-// The shared fund goal is the sum of "amount" across visible Rent/Utility
-// needs that aren't Covered yet — i.e. the known gap still open right now.
+// NOT currently called (see DONATE_URL note above) — the old fund-vs-need
+// dollar comparison for the "This Month, At a Glance" card. Left in place
+// in case public fund tracking comes back for a future version.
 function fundGoal(needs) {
   return visibleNeeds(needs)
     .filter(n => (n.category === 'Rent' || n.category === 'Utilities') && n.amount)
@@ -484,10 +415,7 @@ function fundGoal(needs) {
     .reduce((sum, n) => sum + toNumber(n.amount), 0);
 }
 
-// Live from the Needs tab: total outstanding $ AND the number of distinct
-// families behind it (a family can have both a Rent and a Utility need —
-// counted as 2 needs but 1 family, via the shared visit id prefix on each
-// expanded need's id, e.g. "121-R" and "121-U" both belong to family 121).
+// NOT currently called — see fundGoal() above.
 function outstandingNeedsSummary(needs) {
   const open = visibleNeeds(needs)
     .filter(n => (n.category === 'Rent' || n.category === 'Utilities') && n.amount)
@@ -497,52 +425,29 @@ function outstandingNeedsSummary(needs) {
   return { total, families: families.size };
 }
 
-// Builds the full "This Month, At a Glance" block as two <p> paragraphs.
-// Paragraph 1 (activity) pulls from the matching Results row for this month.
-// Paragraph 2 (funds/needs) is unchanged in logic from before.
-function buildSnapshotSentence(needs, resultsRows, snap) {
-  if (!snap) return '';
-  const month = formatMonthName(snap.snapshot_date) || 'this month';
-  const snapMonthKey = toMonthKey(snap.snapshot_date);
-  const results = (resultsRows || []).find(r => toMonthKey(r.month_key) === snapMonthKey);
+// Builds the "This Month, At a Glance" sentence — counts only, no dollar
+// figures. The conference runs on a monthly parish allowance and doesn't
+// fundraise on its own, so this deliberately doesn't mention funds
+// available or outstanding $ need (see DONATE_URL note above). Pulls
+// straight from the most recent Results row.
+function buildSnapshotSentence(resultsRows) {
+  if (!resultsRows || !resultsRows.length) return '';
+  const latest = resultsRows[resultsRows.length - 1];
+  const month = latest.month || 'this month';
+  const visits = toNumber(latest.home_visits);
+  const people = toNumber(latest.people_helped);
+  const furniture = toNumber(latest.furniture_requests);
+  const rentUtility = toNumber(latest.rent_utility_requests);
+  const visitWord = visits === 1 ? 'home' : 'homes';
+  const peopleWord = people === 1 ? 'neighbor' : 'neighbors';
 
-  let activity;
-  if (results) {
-    const visits = toNumber(results.home_visits);
-    const assistance = toNumber(results.financial_assistance);
-    const visitWord = visits === 1 ? 'home' : 'homes';
-    activity = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord}, gave <strong>$${assistance.toLocaleString()}</strong> in rent/utility assistance, and provided furniture/home goods to neighbors in need.`;
-  } else {
-    activity = `In <strong>${month}</strong>, SVdP continues visiting families across our parish community.`;
-  }
+  let s = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord} and helped <strong>${people}</strong> ${peopleWord}`;
+  const parts = [];
+  if (furniture > 0) parts.push(`<strong>${furniture}</strong> furniture/household item${furniture === 1 ? '' : 's'}`);
+  if (rentUtility > 0) parts.push(`<strong>${rentUtility}</strong> rent or utility assistance request${rentUtility === 1 ? '' : 's'}`);
+  s += parts.length ? `, providing ${parts.join(' and ')}.` : `.`;
 
-  const funds = toNumber(snap.funds_available);
-  const { total: needsTotal, families } = outstandingNeedsSummary(needs);
-  const gap = funds - needsTotal;
-  const avgRequest = families ? needsTotal / families : 0;
-  const familyWord = families === 1 ? 'family' : 'families';
-
-  let s = `We have <strong>$${funds.toLocaleString()}</strong> in available funds`;
-
-  if (families > 0) {
-    s += ` and outstanding requests from <strong>${families}</strong> ${familyWord} totaling <strong>$${needsTotal.toLocaleString()}</strong> for rent/utility assistance.`;
-  } else {
-    s += ` and no open rent or utility requests right now.`;
-  }
-
-  if (gap >= 0) {
-    s += ` This leaves <strong>$${gap.toLocaleString()}</strong> for future requests`;
-    if (avgRequest > 0) {
-      const mm = Math.max(1, Math.round(gap / avgRequest));
-      s += ` &mdash; approximately <strong>${mm}</strong> more request${mm === 1 ? '' : 's'} at this month's typical size.`;
-    } else {
-      s += `.`;
-    }
-  } else {
-    s += ` That's <strong>$${Math.abs(gap).toLocaleString()}</strong> more than what's currently budgeted &mdash; additional gifts will be needed to fully cover it.`;
-  }
-
-  return `<p>${activity}</p><p>${s}</p>`;
+  return `<p>${s}</p>`;
 }
 
 // Parses a date string into a sortable "YYYY-MM-DD" form regardless of the
@@ -562,15 +467,16 @@ function parseDateSortable(str) {
   return str; // unrecognized format — falls back to plain text comparison
 }
 
-// Board ordering: actionable cards first (Special Need claim cards, since
-// they need a specific person to step up), then Rent/Utility (actionable
-// via the general Give button), then Warehouse info-only cards last (no
-// action needed from anyone). Newest visit first within each tier, so new
-// cards actually get noticed instead of getting buried.
+// Board ordering: Special Need cards first (someone specific needs to step
+// up, so they get top billing regardless of status), then everything else
+// split into Open/Active vs Inactive (Covered) — active needs surface above
+// resolved ones so the board reads urgent-to-resolved. Newest visit first
+// within each of the three tiers, so new cards actually get noticed instead
+// of getting buried.
 function boardPriority(need) {
   if (need.category === 'Furnishings' && need.subtype === 'special') return 0;
-  if (need.category === 'Rent' || need.category === 'Utilities') return 1;
-  return 2; // Furnishings / warehouse
+  const status = (need.status || 'open').toLowerCase();
+  return status === 'covered' ? 2 : 1;
 }
 function sortForBoard(needs) {
   return [...needs].sort((a, b) => {
