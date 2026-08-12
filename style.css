@@ -251,6 +251,17 @@ body {
 }
 .page-index .sister-name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 17px; color: var(--ink); margin: 0 0 6px; }
 .page-index .sister-blurb { font-size: 13px; color: var(--inktext); line-height: 1.5; margin: 0; }
+.page-index .sister-details { margin-top: 8px; }
+.page-index .sister-details summary {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--sage); cursor: pointer; list-style: none;
+}
+.page-index .sister-details summary::-webkit-details-marker { display: none; }
+.page-index .sister-details summary::after { content: ' \25B8'; display: inline-block; margin-left: 6px; transition: transform 0.2s ease; }
+.page-index .sister-details[open] summary::after { transform: rotate(90deg); }
+.page-index .sister-details summary:hover { color: var(--ink); }
+.page-index .sister-details[open] summary { color: var(--ink); margin-bottom: 8px; }
+.page-index .sister-details p { font-size: 12px; line-height: 1.55; color: var(--inktext); opacity: 0.9; margin: 0; }
 
 .page-index .volunteer-card {
   max-width: 480px; margin: 0 auto; text-align: center;
