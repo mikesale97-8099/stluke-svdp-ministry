@@ -14,7 +14,7 @@ The conference runs on a monthly operating allowance from the parish, and the pa
 
 - Has **no "Give" button or donate link** anywhere (removed from both `board.html` and `index.html`)
 - Shows **no dollar amounts** on Rent/Utility cards — just the status badge, title, and description
-- The "This Month, At a Glance" card shows **counts only** — see the dedicated "This Month, At a Glance" section below for exactly what it computes and from where
+- The "Home Visits — At a Glance" card shows **counts only** — see the dedicated "Home Visits — At a Glance" section below for exactly what it computes and from where
 
 Nothing money-related was deleted, just disconnected, in case a parish-approved giving feature comes back later (e.g. a separate "We Are SVdP" page):
 
@@ -91,7 +91,7 @@ The **"Families We've Served" archive** (`servedNeeds()` in `site.js`, collapsed
 ```
 month | month_key | home_visits | families_helped | people_helped | furniture_requests | rent_requests | utility_requests | financial_assistance
 ```
-The **Home Visit Results** table on `index.html` shows four of those — Home Visits, Furniture Assists (furniture + special needs combined), Rent Assists, Utility Assists — filtered to **2026 only**, with each metric as a row and each 2026 month as a column (most recent first), plus a bolded "2026 YTD" column. Metrics-as-rows keeps the table short and lets it scroll sideways through months on a narrow phone screen, rather than growing a new row per month. `families_helped`, `people_helped`, and `financial_assistance` are still read and available on each row, just not shown in this table — the glance-card sentence uses `families_helped` and `people_helped` (see "This Month, At a Glance" below); `financial_assistance` stays hidden per "Money / giving — currently off" above.
+The **Home Visit Results** table on `index.html` shows four of those — Home Visits, Furniture Assists (furniture + special needs combined), Rent Assists, Utility Assists — filtered to **2026 only**, with each metric as a row and each 2026 month as a column (most recent first), plus a bolded "2026 YTD" column. Metrics-as-rows keeps the table short and lets it scroll sideways through months on a narrow phone screen, rather than growing a new row per month. `families_helped`, `people_helped`, and `financial_assistance` are still read and available on each row, just not shown in this table — the glance-card sentence uses `families_helped` and `people_helped` (see "Home Visits — At a Glance" below); `financial_assistance` stays hidden per "Money / giving — currently off" above.
 
 **Row order is never assumed.** Both this table and the glance card used to just trust the sheet's row order (oldest-first) and grab the last row as "the current month" — that broke silently and picked the wrong month if the sheet ever had a stray non-month row (a blank template row for next month, a totals row, etc.) after the real data. `sortResultsByMonthDesc()` in `site.js` now explicitly sorts by `month_key` and drops any row that doesn't parse to a real `YYYY-MM`, so row order in the sheet itself no longer matters.
 
@@ -122,11 +122,13 @@ Paste your two published CSV URLs between the quotes. Save and re-upload `site.j
 
 If a URL is left blank or the fetch fails for any reason, the page quietly falls back to the built-in sample data, so it never shows a broken page.
 
-## This Month, At a Glance
+## Home Visits — At a Glance
 
-Both pages show a compact "at a glance" card with **two paragraphs**, built by `buildSnapshotSentence(resultsRows)` in `site.js`. No dollar amounts (see "Money / giving — currently off" above).
+Both pages show a compact "at a glance" card with a dynamic heading and **two paragraphs**, built by `glanceHeading(needs)` and `buildSnapshotSentence(resultsRows, needs)` in `site.js`. No dollar amounts (see "Money / giving — currently off" above).
 
-1. **This month:** home visits, plus furniture/household and rent/utility requests provided — pulled from the latest row of the **Results** tab. The copy explicitly notes that these are requests fulfilled this month, which may include ones collected in prior months (see the Results-tab note above on Covered-month bucketing).
+The heading (e.g. "August Home Visits — At a Glance") and the "As of [date]" opening both come from `mostRecentVisitISO(needs)` — the latest `Initial Home Visit Date` across all Needs rows, not just the Results row's month name. That distinction matters: the Results tab is only month-granular, so a header/sentence built purely from "August 2026" reads like the month is over, even mid-month when the data is still accumulating. Dating the card by the actual last visit avoids that.
+
+1. **This month:** home visits, plus furniture/household and rent/utility requests provided — the counts come from the latest row of the **Results** tab, but the date stamp comes from the Needs tab as described above. The copy explicitly notes that these are requests fulfilled this month, which may include ones collected in prior months (see the Results-tab note above on Covered-month bucketing).
 2. **Year-to-date:** families and people helped so far in the current year — both simple sums of `families_helped` and `people_helped` across the year's Results rows. Summing `families_helped` across months is safe (no double-counting) because the workbook already counts each family only once, in the month its first request was covered — see the Results-tab note above.
 
 The workbook's **Balance Snapshot** tab (`snapshot_date | funds_available`, with `outstanding_needs`, `assistance_provided_this_month`, and `available_balance` computed by formula from the Needs tab's Date Covered columns — see the workbook's Instructions tab) still exists and can still be published as CSV, but the site doesn't currently read it. It's what a future funds-tracking version would plug back into `LEDGER_CSV_URL` in `site.js`.

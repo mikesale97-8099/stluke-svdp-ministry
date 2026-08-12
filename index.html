@@ -44,7 +44,7 @@
     <!-- ===== Needs Bulletin Board (preview) ===== -->
     <div class="section">
       <div class="glance-card">
-        <div class="fund-label">This Month, At a Glance</div>
+        <div class="fund-label" id="glance-label">This Month, At a Glance</div>
         <div class="snapshot-sentence" id="snapshot-sentence"></div>
       </div>
       <div class="section-label board-label">Needs Bulletin Board</div>
@@ -93,7 +93,7 @@
       <div class="section-label">Supporting Our Sister Conferences</div>
       <div class="sisters">
         <div class="sister-card">
-          <div class="sister-name">St. Rita</div>
+          <div class="sister-name">St. Rita's - Indy</div>
           <p class="sister-blurb">St. Rita, founded in 1919 as Indianapolis's first parish for African American Catholics, has been a "domestic twin" to St. Luke's conference for over 40 years.</p>
           <details class="sister-details">
             <summary>Read more</summary>
@@ -101,7 +101,7 @@
           </details>
         </div>
         <div class="sister-card">
-          <div class="sister-name">Jamaica</div>
+          <div class="sister-name">St. Helen's - Jamaica</div>
           <p class="sister-blurb">St. Helen's Conference, in Linstead, Jamaica, has been our international "twin" for over 20 years, serving one of the area's highest-poverty communities.</p>
           <details class="sister-details">
             <summary>Read more</summary>
@@ -298,9 +298,12 @@ Thank you!`;
     });
   }
 
-  function renderGlance(resultsRows) {
+  function renderGlance(resultsRows, needs) {
     const sentenceEl = document.getElementById('snapshot-sentence');
-    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows);
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows, needs);
+
+    const labelEl = document.getElementById('glance-label');
+    if (labelEl) labelEl.textContent = glanceHeading(needs);
   }
 
   async function init() {
@@ -308,7 +311,7 @@ Thank you!`;
     const results = await loadResults();
     renderPreview(needs);
     renderResults(results);
-    renderGlance(results);
+    renderGlance(results, needs);
     showFallbackWarningIfNeeded();
   }
   init();

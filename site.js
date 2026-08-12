@@ -464,28 +464,48 @@ function outstandingNeedsSummary(needs) {
   return { total, families: families.size };
 }
 
-// Builds the "This Month, At a Glance" copy — two short paragraphs, counts
-// only, no dollar figures (see DONATE_URL note above). Paragraph 1 covers
-// the most recent Results row; paragraph 2 is a running year-to-date total.
-// families_helped and people_helped both come straight from the Results
-// tab — the workbook counts a family only once, in the month its FIRST
-// request was covered, so summing families_helped across the year's rows
-// is already a correct, non-duplicated year total (no client-side
-// re-derivation from the Needs data needed, unlike an earlier version of
-// this function).
-function buildSnapshotSentence(resultsRows) {
+// Latest Initial Home Visit Date across all needs, as an ISO "YYYY-MM-DD"
+// string (or '' if there's no visit data at all). This is the actual date
+// the glance card is "as of" — the Results row it's paired with is only
+// month-granular and may still be mid-month/accumulating, so dating the
+// card by that row's month name alone ("In August 2026...") reads like a
+// completed month even when it isn't.
+function mostRecentVisitISO(needs) {
+  let latest = '';
+  (needs || []).forEach(n => {
+    const iso = parseDateSortable(n.date_posted);
+    if (iso && iso > latest) latest = iso;
+  });
+  return latest;
+}
+
+// Builds the "At a Glance" copy — two short paragraphs, counts only, no
+// dollar figures (see DONATE_URL note above). Paragraph 1 covers the most
+// recent Results row, dated by the actual most recent home visit (not just
+// "this month," which could overstate how complete the month's data is);
+// paragraph 2 is a running year-to-date total. families_helped and
+// people_helped both come straight from the Results tab — the workbook
+// counts a family only once, in the month its FIRST request was covered,
+// so summing families_helped across the year's rows is already a correct,
+// non-duplicated year total (no client-side re-derivation from the Needs
+// data needed, unlike an earlier version of this function).
+function buildSnapshotSentence(resultsRows, needs) {
   const sorted = sortResultsByMonthDesc(resultsRows);
   if (!sorted.length) return '';
   const latest = sorted[0];
-  const month = latest.month || 'this month';
   const year = (toMonthKey(latest.month_key) || '').slice(0, 4) || String(new Date().getFullYear());
+
+  const visitISO = mostRecentVisitISO(needs);
+  const visitDate = new Date(visitISO + 'T00:00:00');
+  const asOfDate = visitISO && !isNaN(visitDate)
+    ? visitDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : (latest.month || 'this month');
 
   const visits = toNumber(latest.home_visits);
   const furniture = toNumber(latest.furniture_requests);
   const rentUtility = toNumber(latest.rent_requests) + toNumber(latest.utility_requests);
-  const visitWord = visits === 1 ? 'home' : 'homes';
 
-  const p1 = `In <strong>${month}</strong>, SVdP visited <strong>${visits}</strong> ${visitWord} to understand their needs. Between new requests and ones carried over from prior months, we fulfilled <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'} and <strong>${rentUtility}</strong> rent or utility assistance request${rentUtility === 1 ? '' : 's'} this month.`;
+  const p1 = `As of <strong>${asOfDate}</strong>, SVdP has visited <strong>${visits}</strong> home${visits === 1 ? '' : 's'} this month to understand their needs. Between new requests and ones carried over from prior months, we've fulfilled <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'} and <strong>${rentUtility}</strong> rent or utility assistance request${rentUtility === 1 ? '' : 's'} this month.`;
 
   const ytdRows = sorted.filter(r => (toMonthKey(r.month_key) || '').startsWith(year));
   const familiesYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.families_helped), 0);
@@ -494,6 +514,17 @@ function buildSnapshotSentence(resultsRows) {
   const p2 = `In <strong>${year}</strong>, SVdP has helped <strong>${familiesYTD}</strong> famil${familiesYTD === 1 ? 'y' : 'ies'} — <strong>${peopleYTD}</strong> people in total — through your generosity. Thank you!`;
 
   return `<p>${p1}</p><p>${p2}</p>`;
+}
+
+// "August Home Visits — At a Glance", derived from the same most-recent
+// visit date as buildSnapshotSentence() above, so the card's own heading
+// and body never disagree about what month they're describing.
+function glanceHeading(needs) {
+  const iso = mostRecentVisitISO(needs);
+  const d = new Date(iso + 'T00:00:00');
+  if (!iso || isNaN(d)) return 'Home Visits — At a Glance';
+  const monthName = d.toLocaleDateString('en-US', { month: 'long' });
+  return `${monthName} Home Visits — At a Glance`;
 }
 
 // Parses a date string into a sortable "YYYY-MM-DD" form regardless of the

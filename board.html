@@ -259,9 +259,12 @@ Thank you!`;
     });
   }
 
-  function renderGlance(resultsRows) {
+  function renderGlance(resultsRows, needs) {
     const sentenceEl = document.getElementById('snapshot-sentence');
-    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows);
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows, needs);
+
+    const labelEl = document.getElementById('glance-label');
+    if (labelEl) labelEl.textContent = glanceHeading(needs);
   }
 
   async function init() {
@@ -269,7 +272,7 @@ Thank you!`;
     renderFilters();
     renderBoard();
     renderServed(NEEDS);
-    renderGlance(await loadResults());
+    renderGlance(await loadResults(), NEEDS);
     showFallbackWarningIfNeeded();
   }
   init();
