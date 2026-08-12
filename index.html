@@ -300,7 +300,7 @@ Thank you!`;
 
   function renderGlance(resultsRows, needs) {
     const sentenceEl = document.getElementById('snapshot-sentence');
-    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows, needs);
+    if (sentenceEl) sentenceEl.innerHTML = buildSnapshotSentence(resultsRows);
 
     const labelEl = document.getElementById('glance-label');
     if (labelEl) labelEl.textContent = glanceHeading(needs);

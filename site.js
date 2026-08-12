@@ -481,31 +481,25 @@ function mostRecentVisitISO(needs) {
 
 // Builds the "At a Glance" copy — two short paragraphs, counts only, no
 // dollar figures (see DONATE_URL note above). Paragraph 1 covers the most
-// recent Results row, dated by the actual most recent home visit (not just
-// "this month," which could overstate how complete the month's data is);
-// paragraph 2 is a running year-to-date total. families_helped and
-// people_helped both come straight from the Results tab — the workbook
-// counts a family only once, in the month its FIRST request was covered,
-// so summing families_helped across the year's rows is already a correct,
-// non-duplicated year total (no client-side re-derivation from the Needs
-// data needed, unlike an earlier version of this function).
-function buildSnapshotSentence(resultsRows, needs) {
+// recent Results row; the actual as-of date lives in the heading instead
+// (see glanceHeading() below), so this doesn't repeat it. Paragraph 2 is a
+// running year-to-date total. families_helped and people_helped both come
+// straight from the Results tab — the workbook counts a family only once,
+// in the month its FIRST request was covered, so summing families_helped
+// across the year's rows is already a correct, non-duplicated year total
+// (no client-side re-derivation from the Needs data needed, unlike an
+// earlier version of this function).
+function buildSnapshotSentence(resultsRows) {
   const sorted = sortResultsByMonthDesc(resultsRows);
   if (!sorted.length) return '';
   const latest = sorted[0];
   const year = (toMonthKey(latest.month_key) || '').slice(0, 4) || String(new Date().getFullYear());
 
-  const visitISO = mostRecentVisitISO(needs);
-  const visitDate = new Date(visitISO + 'T00:00:00');
-  const asOfDate = visitISO && !isNaN(visitDate)
-    ? visitDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : (latest.month || 'this month');
-
   const visits = toNumber(latest.home_visits);
   const furniture = toNumber(latest.furniture_requests);
   const rentUtility = toNumber(latest.rent_requests) + toNumber(latest.utility_requests);
 
-  const p1 = `As of <strong>${asOfDate}</strong>, SVdP has visited <strong>${visits}</strong> home${visits === 1 ? '' : 's'} this month to understand their needs. Between new requests and ones carried over from prior months, we've fulfilled <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'} and <strong>${rentUtility}</strong> rent or utility assistance request${rentUtility === 1 ? '' : 's'} this month.`;
+  const p1 = `So far this month, SVdP has visited <strong>${visits}</strong> home${visits === 1 ? '' : 's'} to understand their needs. We continue to work on accumulated requests and have fulfilled <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'} and <strong>${rentUtility}</strong> rent/utility assistance request${rentUtility === 1 ? '' : 's'}.`;
 
   const ytdRows = sorted.filter(r => (toMonthKey(r.month_key) || '').startsWith(year));
   const familiesYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.families_helped), 0);
@@ -516,15 +510,17 @@ function buildSnapshotSentence(resultsRows, needs) {
   return `<p>${p1}</p><p>${p2}</p>`;
 }
 
-// "August Home Visits — At a Glance", derived from the same most-recent
-// visit date as buildSnapshotSentence() above, so the card's own heading
-// and body never disagree about what month they're describing.
+// "August Home Visits — At a Glance (8/6/26)" — the as-of date lives here
+// in the heading (short M/D/YY form) rather than repeated in the sentence
+// below. Derived from the same most-recent visit date used elsewhere, so
+// the heading and body never disagree about what period they're covering.
 function glanceHeading(needs) {
   const iso = mostRecentVisitISO(needs);
   const d = new Date(iso + 'T00:00:00');
   if (!iso || isNaN(d)) return 'Home Visits — At a Glance';
   const monthName = d.toLocaleDateString('en-US', { month: 'long' });
-  return `${monthName} Home Visits — At a Glance`;
+  const shortDate = d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
+  return `${monthName} Home Visits — At a Glance (${shortDate})`;
 }
 
 // Parses a date string into a sortable "YYYY-MM-DD" form regardless of the
