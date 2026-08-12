@@ -71,11 +71,6 @@ body {
   padding: 8px 0; background: var(--ink); color: var(--paper); border: none; border-radius: 2px; cursor: pointer;
 }
 .page-board .card-btn.claimed-btn { background: transparent; color: var(--sage); border: 1px solid var(--sage); cursor: default; }
-.page-board .warehouse-tag {
-  margin-top: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.05em;
-  text-transform: uppercase; text-align: center; padding: 8px 0;
-  color: var(--inktext); opacity: 0.7; border-top: 1px dashed var(--paperline);
-}
 .page-board .card-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; line-height: 1; }
 .page-board .status-badge {
   display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 1;
@@ -392,11 +387,6 @@ body {
   color: var(--inktext);
 }
 .page-index .amount-note { font-size: 11px; color: var(--inktext); opacity: 0.75; margin: 6px 0 0; }
-.page-index .warehouse-tag {
-  margin-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.05em;
-  text-transform: uppercase; text-align: center; padding: 6px 0;
-  color: var(--inktext); opacity: 0.7; border-top: 1px dashed var(--paperline);
-}
 .page-index .toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
   padding: 12px 20px; background: var(--ink); color: var(--paper); font-size: 14px;
