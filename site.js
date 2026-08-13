@@ -4,9 +4,9 @@
 // Leave as "" to use the sample data below instead.
 // Both index.html and board.html read from this one file.
 // ============================================================
-const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=901926330&single=true&output=csv";
-const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=1382899209&single=true&output=csv";
-const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT47Kwrb7wBPrBwI7gcMH-ZT7Az1EvdQ_7DSSJOsojJOM1wO5mF_zA-ZBLDsv9nyg/pub?gid=49249456&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab — NOT currently loaded by either page (see note above DONATE_URL); left here so it's a one-line change to bring back
+const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=187704042&single=true&output=csv";
+const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=1395629985&single=true&output=csv";
+const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=1825093622&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab — NOT currently loaded by either page (see note above DONATE_URL); left here so it's a one-line change to bring back
 
 // NOT currently used. The parish gives our conference a monthly operating
 // allowance and has asked ministries not to fundraise independently (it
@@ -93,7 +93,7 @@ function monthAbbrevFromKey(key) {
 // ------------------------------------------------------------
 const SAMPLE_NEEDS = [
   {
-    servware_id: "1", initial_home_visit_date: "2026-08-02", "#_in_household": "4",
+    visitid: "1", initial_home_visit_date: "2026-08-02", "#_in_household": "4",
     summary: "Family of 4, kids sharing a room. Currently sleeping on the floor.",
     "warehouse_item_needed?": "Yes", distribution_center_request_date: "",
     warehouse_item: "Twin bed frame + mattress", warehouse_status: "Open",
@@ -103,7 +103,7 @@ const SAMPLE_NEEDS = [
     overall_status: "Active", month_posted: "2026-08",
   },
   {
-    servware_id: "3", initial_home_visit_date: "2026-07-30", "#_in_household": "3",
+    visitid: "3", initial_home_visit_date: "2026-07-30", "#_in_household": "3",
     summary: "Grandmother raising two grandchildren, short after a car repair.",
     "warehouse_item_needed?": "", distribution_center_request_date: "",
     warehouse_item: "", warehouse_status: "",
@@ -113,7 +113,7 @@ const SAMPLE_NEEDS = [
     overall_status: "Active", month_posted: "2026-07",
   },
   {
-    servware_id: "4", initial_home_visit_date: "2026-07-28", "#_in_household": "3",
+    visitid: "4", initial_home_visit_date: "2026-07-28", "#_in_household": "3",
     summary: "Household of 3, shutoff notice received this week.",
     "warehouse_item_needed?": "", distribution_center_request_date: "",
     warehouse_item: "", warehouse_status: "",
@@ -123,7 +123,7 @@ const SAMPLE_NEEDS = [
     overall_status: "Active", month_posted: "2026-07",
   },
   {
-    servware_id: "6", initial_home_visit_date: "2026-07-21", "#_in_household": "4",
+    visitid: "6", initial_home_visit_date: "2026-07-21", "#_in_household": "4",
     summary: "Mom returning to work after medical leave, one month behind.",
     "warehouse_item_needed?": "", distribution_center_request_date: "",
     warehouse_item: "", warehouse_status: "",
@@ -133,7 +133,7 @@ const SAMPLE_NEEDS = [
     overall_status: "Inactive", month_posted: "2026-07",
   },
   {
-    servware_id: "7", initial_home_visit_date: "2026-07-18", "#_in_household": "2",
+    visitid: "7", initial_home_visit_date: "2026-07-18", "#_in_household": "2",
     summary: "Elderly couple on fixed income, house has been cold.",
     "warehouse_item_needed?": "", distribution_center_request_date: "",
     warehouse_item: "", warehouse_status: "",
@@ -146,7 +146,7 @@ const SAMPLE_NEEDS = [
     // Has BOTH a warehouse item and a special need — the board shows only
     // the special need (claimable); the warehouse item still counts in
     // Results but never renders its own card.
-    servware_id: "127", initial_home_visit_date: "2026-08-12", "#_in_household": "4",
+    visitid: "127", initial_home_visit_date: "2026-08-12", "#_in_household": "4",
     summary: "Family needs both a kitchen table and help with utilities.",
     "warehouse_item_needed?": "Yes", distribution_center_request_date: "",
     warehouse_item: "Kitchen table + chairs", warehouse_status: "Open",
@@ -157,7 +157,7 @@ const SAMPLE_NEEDS = [
   },
   {
     // Special need only, no warehouse item at all.
-    servware_id: "129", initial_home_visit_date: "2026-08-16", "#_in_household": "3",
+    visitid: "129", initial_home_visit_date: "2026-08-16", "#_in_household": "3",
     summary: "Family needs a microwave — not available through the warehouse this cycle.",
     "warehouse_item_needed?": "", distribution_center_request_date: "",
     warehouse_item: "", warehouse_status: "",
@@ -298,7 +298,7 @@ function expandVisitsToNeeds(visits) {
 
     if (hasSpecial) {
       needs.push({
-        id: `${v.servware_id}-H`,
+        id: `${v.visitid}-H`,
         category: 'Furnishings',
         subtype: 'special',
         title: v.special_need_item || 'Household item',
@@ -311,7 +311,7 @@ function expandVisitsToNeeds(visits) {
       });
     } else if (hasWarehouse) {
       needs.push({
-        id: `${v.servware_id}-H`,
+        id: `${v.visitid}-H`,
         category: 'Furnishings',
         subtype: 'warehouse',
         title: v.warehouse_item || 'Household item',
@@ -326,7 +326,7 @@ function expandVisitsToNeeds(visits) {
 
     if ((v['rent_assistance_needed?'] || '').toLowerCase() === 'yes') {
       needs.push({
-        id: `${v.servware_id}-R`,
+        id: `${v.visitid}-R`,
         category: 'Rent',
         title: v.rent_assistance_needed || 'Rent Assistance',
         detail,
@@ -339,7 +339,7 @@ function expandVisitsToNeeds(visits) {
     }
     if ((v['utility_assistance_needed?'] || '').toLowerCase() === 'yes') {
       needs.push({
-        id: `${v.servware_id}-U`,
+        id: `${v.visitid}-U`,
         category: 'Utilities',
         title: v.utility_assistance_needed || 'Utility Assistance',
         detail,

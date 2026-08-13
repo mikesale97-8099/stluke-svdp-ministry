@@ -65,7 +65,7 @@ Both `index.html`'s needs preview / results table and `board.html`'s full needs 
 The Needs data now comes from the **svdp-needs-board-template.xlsx** workbook (one row per home visit, with Warehouse/Special Need/Rent/Utility needs tracked side by side). `site.js` expects that exact column layout — see the workbook's own Instructions tab for the full column reference. In short:
 
 ```
-ServWare ID | Initial Home Visit Date | # in Household | Summary |
+VisitID | Initial Home Visit Date | # in Household | Summary |
 Warehouse Item Needed? | Distribution Center Request Date | Warehouse Item | Warehouse Status |
 Special Need Item? | Special Need Item | Special Need Status | Household Combined Status |
 Rent Assistance Needed? | Rent Assistance Needed | Rent Amount Needed | Rent Need Status |
@@ -74,6 +74,8 @@ Overall Status | Month Posted
 ```
 
 `site.js` expands each visit row into board cards (one per need type that's flagged "Yes"), so a family needing both rent help and a bed shows as two separate cards, sharing the same `Summary` text.
+
+**Column A was renamed** from "ServWare ID" to "VisitID" (same values, just a new header) — `site.js` reads it as `v.visitid` throughout `expandVisitsToNeeds()`. This matters more than a typical column rename: every card's internal `id` is built from this field (e.g. `123-H`, `123-R`), and that id is what the "I can help" claim button tracks per-card. If Column A's header ever changes again, update every `v.visitid` reference in `expandVisitsToNeeds()` (and in `SAMPLE_NEEDS`) to match the new normalized header name — otherwise every family would silently collide on the same `undefined-H`/`undefined-R`/etc. id, and claiming one family's item would incorrectly mark every other family's matching item as claimed too.
 
 - **Household items are tracked two ways:** most go through the SVdP central warehouse (Warehouse columns) — no parishioner action needed, tracked purely for record-keeping. Occasionally an item isn't available through the warehouse and needs a parishioner to step up (Special Need columns). **The board shows only ONE household card per visit** — the Special Need if one exists (with the "I can help" claim button), otherwise the Warehouse item as a plain, non-interactive info card (same date + status badge as any other card — no "SVdP Warehouse" label; the board no longer calls out where help comes from, see below). Both still count toward the `furniture_requests` figure in Results either way, even though only one ever renders on the board.
 - Every card shows a solid-color **status badge** (Open = rust/orange, Partially Covered = gold, Covered/Claimed = sage/green — `statusColor()` in `site.js`) and the visit date, side by side on one row (`.card-top-row`) at the top of the card — badge on the left, date on the right. This is the only status indicator; there's no diagonal "stamp" anymore, to avoid showing status twice on the same card.
