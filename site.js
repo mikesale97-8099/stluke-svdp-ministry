@@ -6,16 +6,17 @@
 // ============================================================
 const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=187704042&single=true&output=csv";
 const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=1395629985&single=true&output=csv";
-const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=1825093622&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab — NOT currently loaded by either page (see note above DONATE_URL); left here so it's a one-line change to bring back
+const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=1825093622&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab — NOT currently loaded by either page (see the money/donations note below); left here so it's a one-line change to bring back
 
-// NOT currently used. The parish gives our conference a monthly operating
-// allowance and has asked ministries not to fundraise independently (it
-// creates competition with the parish's own giving/operating budget), so
-// the MVP does not solicit donations anywhere on the site. Kept here —
-// along with give.html itself and the balance-snapshot code below — in
-// case a future, parish-approved version (e.g. a "We Are SVdP" page) needs
-// it again.
-const DONATE_URL = "give.html";
+// The parish gives our conference a monthly operating allowance and has
+// asked ministries not to fundraise independently (it creates competition
+// with the parish's own giving/operating budget), so the site does not
+// solicit donations anywhere. There used to be a placeholder give.html
+// mockup and a DONATE_URL constant pointing to it, kept dormant in case a
+// future, parish-approved version needed them — both were removed since
+// there was no concrete plan to build that version. If that changes,
+// rebuilding give.html and reintroducing a DONATE_URL constant (see git
+// history for the old version) is straightforward.
 
 // When someone clicks "I can help" on a Special Need item, we open a
 // pre-filled email to this address so a real person actually finds out.
@@ -361,7 +362,7 @@ async function loadNeeds() {
 
 // ------------------------------------------------------------
 // Balance Snapshot / balance gauge — NOT currently used by either page
-// (MVP dropped all $ display; see DONATE_URL note near the top of this
+// (MVP dropped all $ display; see the money/donations note near the top of this
 // file). Left intact, including the sample data and loader, so a future
 // version can wire it back in without rebuilding this part. A simple
 // hand-reported snapshot (not a transactional ledger; detailed
@@ -381,8 +382,8 @@ const SAMPLE_BALANCE_SNAPSHOTS = [
 async function loadBalanceSnapshots() { return loadCSV(LEDGER_CSV_URL, SAMPLE_BALANCE_SNAPSHOTS); }
 
 // NOT currently called — kept alongside loadBalanceSnapshots() above for a
-// possible future funds-tracking feature (see DONATE_URL note near the top
-// of this file). Uses the LAST row (most recent snapshot) for
+// possible future funds-tracking feature (see the money/donations note
+// near the top of this file). Uses the LAST row (most recent snapshot) for
 // funds_available, which was manual/treasurer-reported.
 function latestSnapshot(rows) {
   return rows.length ? rows[rows.length - 1] : null;
@@ -444,7 +445,7 @@ function servedNeeds(needs) {
   return needs.filter(n => (n.status || '').toLowerCase() === 'covered');
 }
 
-// NOT currently called (see DONATE_URL note above) — the old fund-vs-need
+// NOT currently called (see the money/donations note near the top of this file) — the old fund-vs-need
 // dollar comparison for the "This Month, At a Glance" card. Left in place
 // in case public fund tracking comes back for a future version.
 function fundGoal(needs) {
@@ -480,7 +481,7 @@ function mostRecentVisitISO(needs) {
 }
 
 // Builds the "At a Glance" copy — two short paragraphs, counts only, no
-// dollar figures (see DONATE_URL note above). Paragraph 1 covers the most
+// dollar figures (see the money/donations note near the top of this file). Paragraph 1 covers the most
 // recent Results row; the actual as-of date lives in the heading instead
 // (see glanceHeading() below), so this doesn't repeat it. Paragraph 2 is a
 // running year-to-date total. families_helped and people_helped both come
@@ -489,6 +490,13 @@ function mostRecentVisitISO(needs) {
 // across the year's rows is already a correct, non-duplicated year total
 // (no client-side re-derivation from the Needs data needed, unlike an
 // earlier version of this function).
+//
+// Includes a "Last month" recap paragraph when there's a prior month's row
+// available (sorted[1]) — same template as the "this month" paragraph, but
+// phrased as a completed month rather than "so far." NOTE: this doesn't yet
+// handle the January boundary specially (Last month = December of the
+// PRIOR year) — that's a deliberate deferral, not an oversight; revisit
+// once there's an end-of-year summary to design alongside it.
 function buildSnapshotSentence(resultsRows) {
   const sorted = sortResultsByMonthDesc(resultsRows);
   if (!sorted.length) return '';
@@ -501,13 +509,22 @@ function buildSnapshotSentence(resultsRows) {
 
   const p1 = `So far this month, SVdP has visited <strong>${visits}</strong> home${visits === 1 ? '' : 's'} to understand their needs. We continue to work on accumulated requests and have fulfilled <strong>${furniture}</strong> furniture/household request${furniture === 1 ? '' : 's'} and <strong>${rentUtility}</strong> rent/utility assistance request${rentUtility === 1 ? '' : 's'}.`;
 
+  let pLast = '';
+  if (sorted.length > 1) {
+    const prior = sorted[1];
+    const pVisits = toNumber(prior.home_visits);
+    const pFurniture = toNumber(prior.furniture_requests);
+    const pRentUtility = toNumber(prior.rent_requests) + toNumber(prior.utility_requests);
+    pLast = `<p>Last month, SVdP visited <strong>${pVisits}</strong> home${pVisits === 1 ? '' : 's'} and fulfilled <strong>${pFurniture}</strong> furniture/household request${pFurniture === 1 ? '' : 's'} and <strong>${pRentUtility}</strong> rent/utility assistance request${pRentUtility === 1 ? '' : 's'}.</p>`;
+  }
+
   const ytdRows = sorted.filter(r => (toMonthKey(r.month_key) || '').startsWith(year));
   const familiesYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.families_helped), 0);
   const peopleYTD = ytdRows.reduce((sum, r) => sum + toNumber(r.people_helped), 0);
 
   const p2 = `In <strong>${year}</strong>, SVdP has helped <strong>${familiesYTD}</strong> famil${familiesYTD === 1 ? 'y' : 'ies'} — <strong>${peopleYTD}</strong> people in total — through your generosity. Thank you!`;
 
-  return `<p>${p1}</p><p>${p2}</p>`;
+  return `<p>${p1}</p>${pLast}<p>${p2}</p>`;
 }
 
 // "August Home Visits — At a Glance (8/6/26)" — the as-of date lives here

@@ -1,10 +1,9 @@
 # St. Luke SVdP Conference — Site Mockup
 
-Five files, no build step required:
+Four files, no build step required:
 
 - `index.html` — the main content page (mission, needs preview, next drive, home visit results, campaigns, sister conferences, volunteer CTA) — this is what a QR code on a bulletin flyer should point to
-- `board.html` — the dedicated, fully-interactive Needs Bulletin Board sub-page (filters + "I can help" claim interaction). Linked to from index.html's needs preview section.
-- `give.html` — a **placeholder, currently unlinked** giving page mockup. Not part of the live MVP (see "Money / giving — currently off" below) — kept in the repo in case a future version needs it.
+- `board.html` — the dedicated, fully-interactive Home Visit Bulletin Board sub-page (filters + "I can help" claim interaction). Linked to from index.html's needs preview section.
 - `site.js` — shared config and data-loading logic used by both pages (see "Google Sheet" section below)
 - `style.css` — shared stylesheet for both pages. Background is St. Luke's brand blue (`#25408E`, pulled from stluke.org). A few components (`.card`, `.glance-card`, `.header`, etc.) render at different sizes on each page, so those are scoped under `.page-board` / `.page-index` (set on each page's `<body>` tag) rather than sharing one rule — safe to edit either page's version without affecting the other.
 
@@ -15,11 +14,11 @@ The conference runs on a monthly operating allowance from the parish, and the pa
 - Has **no "Give" button or donate link** anywhere (removed from both `board.html` and `index.html`)
 - Shows **no dollar amounts** on Rent/Utility cards — just the status badge, title, and description
 - The "Home Visits — At a Glance" card shows **counts only** — see the dedicated "Home Visits — At a Glance" section below for exactly what it computes and from where
+- Has **no `give.html`** — an earlier placeholder giving-page mockup was deleted outright, since it was fully unlinked with no concrete plan to build a real version. If a parish-approved giving feature comes back later, that page (and a `DONATE_URL` constant pointing to it) would need to be rebuilt from scratch — see git history for the old version.
 
-Nothing money-related was deleted, just disconnected, in case a parish-approved giving feature comes back later (e.g. a separate "We Are SVdP" page):
+A few money-related pieces were disconnected rather than deleted, since they're cheap to keep and don't require rebuilding a whole page:
 
-- `give.html` still exists but nothing links to it
-- `DONATE_URL`, the Balance Snapshot loader/sample data, `fundGoal()`, `outstandingNeedsSummary()`, and `latestSnapshot()` are all still in `site.js`, just unused — each has a `// NOT currently called` comment pointing back here
+- The Balance Snapshot loader/sample data, `fundGoal()`, `outstandingNeedsSummary()`, and `latestSnapshot()` are all still in `site.js`, just unused — each has a `// NOT currently called` comment pointing back here
 - The workbook's Results tab can still compute and publish `financial_assistance` and `people_helped`; the site reads both but only shows `people_helped` indirectly (via the glance-card sentence) — neither appears as a column in the Home Visit Results table
 - `LEDGER_CSV_URL` (the published Balance Snapshot tab) is still declared but not fetched by either page
 
@@ -126,11 +125,12 @@ If a URL is left blank or the fetch fails for any reason, the page quietly falls
 
 ## Home Visits — At a Glance
 
-Both pages show a compact "at a glance" card with a dynamic heading and **two paragraphs**, built by `glanceHeading(needs)` and `buildSnapshotSentence(resultsRows, needs)` in `site.js`. No dollar amounts (see "Money / giving — currently off" above).
+Both pages show a compact "at a glance" card with a dynamic heading and **three paragraphs**, built by `glanceHeading(needs)` and `buildSnapshotSentence(resultsRows)` in `site.js`. No dollar amounts (see "Money / giving — currently off" above).
 
-The heading (e.g. "August Home Visits — At a Glance") and the "As of [date]" opening both come from `mostRecentVisitISO(needs)` — the latest `Initial Home Visit Date` across all Needs rows, not just the Results row's month name. That distinction matters: the Results tab is only month-granular, so a header/sentence built purely from "August 2026" reads like the month is over, even mid-month when the data is still accumulating. Dating the card by the actual last visit avoids that.
+The heading (e.g. "August Home Visits — At a Glance (8/16/26)") comes from `mostRecentVisitISO(needs)` — the latest `Initial Home Visit Date` across all Needs rows, not just the Results row's month name. That distinction matters: the Results tab is only month-granular, so a header built purely from "August 2026" reads like the month is over, even mid-month when the data is still accumulating. Dating the card by the actual last visit avoids that; the short date moved into the heading itself so the sentence below doesn't have to repeat it.
 
-1. **This month:** home visits, plus furniture/household and rent/utility requests provided — the counts come from the latest row of the **Results** tab, but the date stamp comes from the Needs tab as described above. The copy explicitly notes that these are requests fulfilled this month, which may include ones collected in prior months (see the Results-tab note above on Covered-month bucketing).
-2. **Year-to-date:** families and people helped so far in the current year — both simple sums of `families_helped` and `people_helped` across the year's Results rows. Summing `families_helped` across months is safe (no double-counting) because the workbook already counts each family only once, in the month its first request was covered — see the Results-tab note above.
+1. **This month:** home visits, plus furniture/household and rent/utility requests provided — pulled from the latest row of the **Results** tab, phrased as "so far this month" since the month may still be in progress. The copy explicitly notes that these are requests fulfilled this month, which may include ones collected in prior months (see the Results-tab note above on Covered-month bucketing).
+2. **Last month:** the same template as above, but for the prior Results row (`sorted[1]`) and phrased as a completed month rather than "so far." Only appears if there's a prior month's row available. **Not yet January-aware** — "last month" in January would mean December of the prior year, which this doesn't special-case. That's deliberate, not an oversight: revisit once there's an end-of-year summary to design alongside it.
+3. **Year-to-date:** families and people helped so far in the current year — both simple sums of `families_helped` and `people_helped` across the year's Results rows. Summing `families_helped` across months is safe (no double-counting) because the workbook already counts each family only once, in the month its first request was covered — see the Results-tab note above.
 
 The workbook's **Balance Snapshot** tab (`snapshot_date | funds_available`, with `outstanding_needs`, `assistance_provided_this_month`, and `available_balance` computed by formula from the Needs tab's Date Covered columns — see the workbook's Instructions tab) still exists and can still be published as CSV, but the site doesn't currently read it. It's what a future funds-tracking version would plug back into `LEDGER_CSV_URL` in `site.js`.

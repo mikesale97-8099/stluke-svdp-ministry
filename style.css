@@ -329,7 +329,9 @@ body {
   color: var(--inktext);
   max-width: 480px;
   margin: 0 auto;
+  text-align: left;
 }
+.page-index .header-sub + .header-sub { margin-top: 12px; }
 .page-index .glance-card {
   max-width: 460px; margin: 0 auto 28px; text-align: center;
   padding: 22px 24px 20px; background: var(--paper);
