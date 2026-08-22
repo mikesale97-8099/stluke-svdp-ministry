@@ -22,8 +22,8 @@
     <div class="board" id="board"></div>
 
     <details class="served-archive">
-      <summary id="served-summary">Through your generosity, SVdP has made a difference in the lives of families at difficult times. Thank you!</summary>
-      <p class="served-note">No names, ever — just a record of the lives this parish has touched together, and the neighbors who still need our prayers.</p>
+      <summary id="served-summary">Through your generosity, SVdP has made a difference in the lives of families over the past 12 months at difficult times. Thank you!</summary>
+      <p class="served-note">No names, ever — just a record of the lives this parish has touched together over the past year, and the neighbors who still need our prayers.</p>
       <div class="served-board" id="served-board"></div>
     </details>
 
@@ -217,8 +217,14 @@ Thank you!`;
     const served = servedNeeds(needs);
     const summaryEl = document.getElementById('served-summary');
     if (summaryEl) {
-      const familyWord = served.length === 1 ? 'family' : 'families';
-      summaryEl.textContent = `Through your generosity, SVdP has made a difference in the lives of ${served.length} ${familyWord} at difficult times. Thank you!`;
+      // Distinct FAMILIES, not needs — a family with e.g. both a rent need
+      // and a utility need covered is one family, not two. Same id-prefix
+      // dedup as outstandingNeedsSummary()'s families count elsewhere in
+      // this file (each expanded need's id is "<visitid>-H"/"-R"/etc., so
+      // the prefix identifies the family).
+      const familyCount = new Set(served.map(n => String(n.id).split('-')[0])).size;
+      const familyWord = familyCount === 1 ? 'family' : 'families';
+      summaryEl.textContent = `Through your generosity, SVdP has made a difference in the lives of ${familyCount} ${familyWord} over the past 12 months at difficult times. Thank you!`;
     }
 
     const el = document.getElementById('served-board');

@@ -437,12 +437,33 @@ function visibleNeeds(needs) {
   });
 }
 
-// The archive counterpart to visibleNeeds() — every need ever marked
-// Covered, regardless of when. This is what powers the "Families We've
-// Served" section: a running record of lives touched, using the same
-// no-names Summary text already shown for open needs.
+// Month key for "12 months ago, same month" — e.g. if today is in
+// 2026-08, this returns "2025-09". Used as the rolling-window cutoff for
+// servedNeeds() below: a need covered in or after this month is "within
+// the past 12 months." Rolls forward automatically every month, unlike a
+// calendar-year filter (which is what the glance card's YTD figures use —
+// deliberately different scope, see servedNeeds() comment below).
+function monthKeyRollingYearsAgo(monthsBack) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - monthsBack);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// The archive counterpart to visibleNeeds() — every need marked Covered
+// within the past rolling 12 months (not calendar-year — this keeps moving
+// forward every month, unlike the glance card's YTD figures, which reset
+// every January by design; the two are intentionally different questions:
+// "this calendar year so far" vs. "the last 12 months as of right now").
+// This is what powers the "Families We've Served" section: a running
+// record of recently touched lives, using the same no-names Summary text
+// already shown for open needs.
 function servedNeeds(needs) {
-  return needs.filter(n => (n.status || '').toLowerCase() === 'covered');
+  const cutoff = monthKeyRollingYearsAgo(11); // this month + 11 prior = 12 months
+  return needs.filter(n => {
+    if ((n.status || '').toLowerCase() !== 'covered') return false;
+    const coveredMonth = toMonthKey(n.date_covered) || toMonthKey(n.month_posted) || currentMonthKey();
+    return coveredMonth >= cutoff;
+  });
 }
 
 // NOT currently called (see the money/donations note near the top of this file) — the old fund-vs-need
