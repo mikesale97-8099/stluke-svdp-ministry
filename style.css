@@ -411,3 +411,13 @@ body {
   max-width: 320px; text-align: center; z-index: 200;
 }
 .page-index .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Mobile: the board's H1 is set for a wide desktop card and wraps to two
+   lines on a phone-width screen, eating a large share of the viewport
+   before any content shows. Scale it (and its surrounding spacing) down
+   below the width where that starts happening. */
+@media (max-width: 480px) {
+  .page-board .header-title { font-size: 26px; line-height: 1.2; margin-bottom: 12px; }
+  .page-board .intro-card { padding: 18px 20px 16px; }
+  .page-board .board-intro { font-size: 13px; }
+}
