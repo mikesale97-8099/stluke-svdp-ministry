@@ -232,14 +232,14 @@ Thank you!`;
       // the prefix identifies the family).
       const familyCount = new Set(served.map(n => String(n.id).split('-')[0])).size;
       const familyWord = familyCount === 1 ? 'family' : 'families';
-      statEl.textContent = `In the last ${RECENT_ACTIVITY_DAYS} days, SVdP has helped ${familyCount} ${familyWord} at difficult times. Thank you!`;
+      statEl.textContent = `Over the past ${RECENT_ACTIVITY_MONTHS} months, SVdP has helped ${familyCount} ${familyWord} at difficult times. Thank you!`;
     }
 
     const el = document.getElementById('served-board');
     if (!el) return;
     el.innerHTML = '';
     if (!served.length) {
-      el.innerHTML = '<div class="empty-note">No completed needs in the last ' + RECENT_ACTIVITY_DAYS + ' days yet.</div>';
+      el.innerHTML = '<div class="empty-note">No completed needs in the past ' + RECENT_ACTIVITY_MONTHS + ' months yet.</div>';
       return;
     }
     const sorted = [...served].sort((a, b) =>

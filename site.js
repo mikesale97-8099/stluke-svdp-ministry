@@ -421,15 +421,17 @@ function sortResultsByMonthDesc(rows) {
 // card was hidden quickly because the ask had been met — but the site no
 // longer solicits anything, so hiding recent wins just makes the board look
 // less active than it is. Covered needs now stay visible for a fixed
-// rolling window (days, not calendar months) so they read as recent,
+// rolling window (calendar months back from today) so they read as recent,
 // positive activity instead of disappearing the moment they're resolved.
-const RECENT_ACTIVITY_DAYS = 60;
+const RECENT_ACTIVITY_MONTHS = 4;
 
-// Today minus N days, as an ISO "YYYY-MM-DD" string — safe to compare
-// lexically against parseDateSortable()'s output.
-function isoDaysAgo(days) {
+// Today minus N calendar months, as an ISO "YYYY-MM-DD" string — safe to
+// compare lexically against parseDateSortable()'s output. Uses actual
+// calendar-month subtraction (not a fixed day count) so "4 months" means
+// the same thing regardless of which months it spans.
+function isoMonthsAgo(months) {
   const d = new Date();
-  d.setDate(d.getDate() - days);
+  d.setMonth(d.getMonth() - months);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
@@ -446,12 +448,12 @@ function coveredDateISO(need) {
 }
 
 // Open/Partially Covered/Unknown needs always show, regardless of age —
-// they're still unresolved. A Covered need shows for RECENT_ACTIVITY_DAYS
+// they're still unresolved. A Covered need shows for RECENT_ACTIVITY_MONTHS
 // after it was covered, then rolls off the live board (it's still visible
 // in the Activity Archive section below, on the same window). Closed needs
 // never show at all — not on the board, not in the archive.
 function visibleNeeds(needs) {
-  const cutoff = isoDaysAgo(RECENT_ACTIVITY_DAYS);
+  const cutoff = isoMonthsAgo(RECENT_ACTIVITY_MONTHS);
   return needs.filter(n => {
     const status = (n.status || 'open').toLowerCase();
     if (status === 'closed') return false;
@@ -463,16 +465,16 @@ function visibleNeeds(needs) {
 
 // Powers the "Activity Archive" section (board.html) and the homepage's
 // "Recent Activity" preview feed alike: every need marked Covered within
-// the same RECENT_ACTIVITY_DAYS rolling window used above — a running,
+// the same RECENT_ACTIVITY_MONTHS rolling window used above — a running,
 // no-names record of lives this parish has touched lately. Intentionally
 // the same window as visibleNeeds()'s Covered cutoff (so a Covered card
 // never vanishes from the site outright, it just moves from the working
 // board into this recap section once it's no longer brand-new), and
 // intentionally a different question than the glance card's YTD figures,
 // which reset every January by design ("this calendar year so far" vs.
-// "the last 60 days as of right now").
+// "the last 4 months as of right now").
 function servedNeeds(needs) {
-  const cutoff = isoDaysAgo(RECENT_ACTIVITY_DAYS);
+  const cutoff = isoMonthsAgo(RECENT_ACTIVITY_MONTHS);
   return needs.filter(n => {
     if ((n.status || '').toLowerCase() !== 'covered') return false;
     const coveredISO = coveredDateISO(n);
