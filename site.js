@@ -416,53 +416,66 @@ function sortResultsByMonthDesc(rows) {
     .sort((a, b) => toMonthKey(b.month_key).localeCompare(toMonthKey(a.month_key)));
 }
 
-// Applies the monthly rollover rule: a Covered need drops off once the
-// month it was ACTUALLY covered in has passed — not the month the need was
-// originally posted. A need requested in July but covered in August stays
-// visible through August, then rolls off in September. Open/Partially
-// Covered needs keep showing regardless of age, and needs with no
-// date_covered yet (e.g. Special Need items, which don't have that column)
-// fall back to their posted month, same as before. Closed needs never show
-// at all — not active, not archived. "Unknown" is deliberately left alone
-// for now (falls through to the same treatment as Open) until there's a
-// decision on how it should actually be handled.
+// Replaces the old "drops off at the end of the covered month" rollover
+// rule. The board used to be a needs-matching/appeal model where a Covered
+// card was hidden quickly because the ask had been met — but the site no
+// longer solicits anything, so hiding recent wins just makes the board look
+// less active than it is. Covered needs now stay visible for a fixed
+// rolling window (days, not calendar months) so they read as recent,
+// positive activity instead of disappearing the moment they're resolved.
+const RECENT_ACTIVITY_DAYS = 60;
+
+// Today minus N days, as an ISO "YYYY-MM-DD" string — safe to compare
+// lexically against parseDateSortable()'s output.
+function isoDaysAgo(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// The single best "when was this actually resolved" date for a Covered
+// need: Date Covered if present, else the first of its Month Posted (most
+// need types don't have a dedicated Date Covered column yet), else its
+// visit date. Returns '' only if none of those parse at all.
+function coveredDateISO(need) {
+  const direct = parseDateSortable(need.date_covered);
+  if (direct) return direct;
+  const mk = toMonthKey(need.month_posted);
+  if (/^\d{4}-\d{2}$/.test(mk)) return `${mk}-01`;
+  return parseDateSortable(need.date_posted);
+}
+
+// Open/Partially Covered/Unknown needs always show, regardless of age —
+// they're still unresolved. A Covered need shows for RECENT_ACTIVITY_DAYS
+// after it was covered, then rolls off the live board (it's still visible
+// in the Recent Activity section below, on the same window). Closed needs
+// never show at all — not on the board, not in Recent Activity.
 function visibleNeeds(needs) {
-  const thisMonth = currentMonthKey();
+  const cutoff = isoDaysAgo(RECENT_ACTIVITY_DAYS);
   return needs.filter(n => {
     const status = (n.status || 'open').toLowerCase();
     if (status === 'closed') return false;
     if (status !== 'covered') return true;
-    const coveredMonth = toMonthKey(n.date_covered) || toMonthKey(n.month_posted) || thisMonth;
-    return coveredMonth === thisMonth;
+    const coveredISO = coveredDateISO(n);
+    return !!coveredISO && coveredISO >= cutoff;
   });
 }
 
-// Month key for "12 months ago, same month" — e.g. if today is in
-// 2026-08, this returns "2025-09". Used as the rolling-window cutoff for
-// servedNeeds() below: a need covered in or after this month is "within
-// the past 12 months." Rolls forward automatically every month, unlike a
-// calendar-year filter (which is what the glance card's YTD figures use —
-// deliberately different scope, see servedNeeds() comment below).
-function monthKeyRollingYearsAgo(monthsBack) {
-  const d = new Date();
-  d.setMonth(d.getMonth() - monthsBack);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-
-// The archive counterpart to visibleNeeds() — every need marked Covered
-// within the past rolling 12 months (not calendar-year — this keeps moving
-// forward every month, unlike the glance card's YTD figures, which reset
-// every January by design; the two are intentionally different questions:
-// "this calendar year so far" vs. "the last 12 months as of right now").
-// This is what powers the "Families We've Served" section: a running
-// record of recently touched lives, using the same no-names Summary text
-// already shown for open needs.
+// Powers the "Recent Activity" section: every need marked Covered within
+// the same RECENT_ACTIVITY_DAYS rolling window used above — a running,
+// no-names record of lives this parish has touched lately. Intentionally
+// the same window as visibleNeeds()'s Covered cutoff (so a Covered card
+// never vanishes from the site outright, it just moves from the working
+// board into this recap section once it's no longer brand-new), and
+// intentionally a different question than the glance card's YTD figures,
+// which reset every January by design ("this calendar year so far" vs.
+// "the last 60 days as of right now").
 function servedNeeds(needs) {
-  const cutoff = monthKeyRollingYearsAgo(11); // this month + 11 prior = 12 months
+  const cutoff = isoDaysAgo(RECENT_ACTIVITY_DAYS);
   return needs.filter(n => {
     if ((n.status || '').toLowerCase() !== 'covered') return false;
-    const coveredMonth = toMonthKey(n.date_covered) || toMonthKey(n.month_posted) || currentMonthKey();
-    return coveredMonth >= cutoff;
+    const coveredISO = coveredDateISO(n);
+    return !!coveredISO && coveredISO >= cutoff;
   });
 }
 
@@ -578,23 +591,13 @@ function parseDateSortable(str) {
   return str; // unrecognized format — falls back to plain text comparison
 }
 
-// Board ordering: Special Need cards first (someone specific needs to step
-// up, so they get top billing regardless of status), then everything else
-// split into Open/Active vs Inactive (Covered) — active needs surface above
-// resolved ones so the board reads urgent-to-resolved. Newest visit first
-// within each of the three tiers, so new cards actually get noticed instead
-// of getting buried.
-function boardPriority(need) {
-  if (need.category === 'Furnishings' && need.subtype === 'special') return 0;
-  const status = (need.status || 'open').toLowerCase();
-  return status === 'covered' ? 2 : 1;
-}
+// Board ordering: straight reverse-chronological by visit date. This used
+// to tier Special Need cards first and push Covered cards to the back
+// (urgent-to-resolved), which made sense when the board was a needs-
+// matching/appeal model — now it's a recency feed, so the most recently
+// visited family shows first regardless of status, Open or Covered alike.
 function sortForBoard(needs) {
-  return [...needs].sort((a, b) => {
-    const pa = boardPriority(a), pb = boardPriority(b);
-    if (pa !== pb) return pa - pb;
-    return parseDateSortable(b.date_posted).localeCompare(parseDateSortable(a.date_posted));
-  });
+  return [...needs].sort((a, b) => parseDateSortable(b.date_posted).localeCompare(parseDateSortable(a.date_posted)));
 }
 
 const STATUS_COLOR = { open: "#A8492E", "partially covered": "#C9A24B", covered: "#7C8B6F" };

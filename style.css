@@ -176,6 +176,11 @@ body {
 .page-board .served-archive[open] summary::after { transform: rotate(90deg); }
 .page-board .served-archive summary:hover { color: var(--paper); }
 .page-board .served-archive[open] summary { color: var(--paper); margin-bottom: 4px; }
+.page-board .served-stat {
+  font-family: 'Fraunces', serif; font-style: italic; font-weight: 600;
+  font-size: 14px; line-height: 1.5; color: var(--paper);
+  max-width: 480px; margin: 0 auto 6px;
+}
 .page-board .served-note {
   font-size: 12px; line-height: 1.6; color: var(--paperline); opacity: 0.85;
   max-width: 480px; margin: 0 auto 24px;
