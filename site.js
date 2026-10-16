@@ -416,18 +416,33 @@ function sortResultsByMonthDesc(rows) {
     .sort((a, b) => toMonthKey(b.month_key).localeCompare(toMonthKey(a.month_key)));
 }
 
-// How far back the Activity Archive section reaches (see servedNeeds()
-// below) — a Covered card shows on the live board through the end of its
-// covered month (visibleNeeds()), then moves into the archive for the rest
-// of this window, instead of disappearing outright like the old appeal-
-// model design did. The board used to be a needs-matching/appeal model
-// where a Covered card was hidden the moment the ask had been met; the
-// site no longer solicits anything, so that old behavior just made the
-// ministry look less active right when there was a win worth showing.
+// The live board's recency window, in days: a Covered need shows on the
+// board if it was covered within the last RECENT_ACTIVITY_DAYS — using its
+// COVER date, not its visit date (see coveredDateISO() below — cover date
+// trumps visit date for this filter, since what makes a Covered card
+// "recent" is when it was resolved, not when the original visit happened).
+// Open/Partially Covered/Unknown needs always show regardless of age —
+// they're still unresolved, so there's no cover date to judge recency by.
+const RECENT_ACTIVITY_DAYS = 60;
+
+// How far back the Activity Archive section reaches beyond that — a
+// Covered card shows on the live board for RECENT_ACTIVITY_DAYS, then moves
+// into the archive for the remainder of RECENT_ACTIVITY_MONTHS, instead of
+// disappearing outright like the old appeal-model design did (a Covered
+// card was hidden the moment the ask had been met; the site no longer
+// solicits anything, so that old behavior just made the ministry look less
+// active right when there was a win worth showing).
 const RECENT_ACTIVITY_MONTHS = 4;
 
-// Today minus N calendar months, as an ISO "YYYY-MM-DD" string — safe to
-// compare lexically against parseDateSortable()'s output. Uses actual
+// Today minus N days, as an ISO "YYYY-MM-DD" string — safe to compare
+// lexically against parseDateSortable()'s output.
+function isoDaysAgo(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Today minus N calendar months, as an ISO "YYYY-MM-DD" string. Uses actual
 // calendar-month subtraction (not a fixed day count) so "4 months" means
 // the same thing regardless of which months it spans.
 function isoMonthsAgo(months) {
@@ -439,7 +454,9 @@ function isoMonthsAgo(months) {
 // The single best "when was this actually resolved" date for a Covered
 // need: Date Covered if present, else the first of its Month Posted (most
 // need types don't have a dedicated Date Covered column yet), else its
-// visit date. Returns '' only if none of those parse at all.
+// visit date. Returns '' only if none of those parse at all. This is the
+// date used for the board's recency filter below — cover date trumps visit
+// date whenever a need has been covered.
 function coveredDateISO(need) {
   const direct = parseDateSortable(need.date_covered);
   if (direct) return direct;
@@ -449,44 +466,42 @@ function coveredDateISO(need) {
 }
 
 // Open/Partially Covered/Unknown needs always show, regardless of age —
-// they're still unresolved. A Covered need shows on the live board only
-// through the END OF THE CURRENT MONTH it was covered in — a brief "just
-// happened" window — then moves into the Activity Archive below for the
-// rest of its time in RECENT_ACTIVITY_MONTHS. This split (instead of both
-// sections sharing one window) is deliberate: sharing a window meant every
-// Covered card appeared twice on the page at once, once on the board and
-// again in the archive directly below it. Closed needs never show at all —
-// not on the board, not in the archive.
+// they're still unresolved. A Covered need shows on the live board for
+// RECENT_ACTIVITY_DAYS after it was covered (by cover date, not visit
+// date), then moves into the Activity Archive below for the remainder of
+// RECENT_ACTIVITY_MONTHS. Closed needs never show at all — not on the
+// board, not in the archive.
 function visibleNeeds(needs) {
-  const thisMonth = currentMonthKey();
+  const cutoff = isoDaysAgo(RECENT_ACTIVITY_DAYS);
   return needs.filter(n => {
     const status = (n.status || 'open').toLowerCase();
     if (status === 'closed') return false;
     if (status !== 'covered') return true;
     const coveredISO = coveredDateISO(n);
-    return !!coveredISO && toMonthKey(coveredISO) === thisMonth;
+    return !!coveredISO && coveredISO >= cutoff;
   });
 }
 
 // Powers the "Activity Archive" section (board.html) and the homepage's
-// "Recent Activity" preview feed alike: every need marked Covered within
-// the past RECENT_ACTIVITY_MONTHS, EXCLUDING the current month — the
-// current month's Covered cards are still showing on the live board itself
-// (see visibleNeeds() above), so excluding them here is what keeps a card
-// from appearing twice on the same page. A Covered card effectively moves
-// from the board into this section once its covered month ends, and ages
+// "Recent Activity" preview feed alike: every need marked Covered further
+// back than RECENT_ACTIVITY_DAYS (the live board's own window — see
+// visibleNeeds() above) but still within RECENT_ACTIVITY_MONTHS overall.
+// Excluding whatever's within RECENT_ACTIVITY_DAYS is what keeps a card
+// from appearing twice on the same page — it's still showing on the live
+// board itself at that point. A Covered card effectively moves from the
+// board into this section once it ages past RECENT_ACTIVITY_DAYS, and ages
 // out of the archive entirely once it passes RECENT_ACTIVITY_MONTHS. This
 // is intentionally a different question than the glance card's YTD
 // figures, which reset every January by design ("this calendar year so
-// far" vs. "the last few months as of right now").
+// far" vs. "the last several months as of right now").
 function servedNeeds(needs) {
-  const thisMonth = currentMonthKey();
+  const boardCutoff = isoDaysAgo(RECENT_ACTIVITY_DAYS);
   const cutoff = isoMonthsAgo(RECENT_ACTIVITY_MONTHS);
   return needs.filter(n => {
     if ((n.status || '').toLowerCase() !== 'covered') return false;
     const coveredISO = coveredDateISO(n);
     if (!coveredISO) return false;
-    if (toMonthKey(coveredISO) === thisMonth) return false; // already shown on the live board — don't repeat it here
+    if (coveredISO >= boardCutoff) return false; // already shown on the live board — don't repeat it here
     return coveredISO >= cutoff;
   });
 }
