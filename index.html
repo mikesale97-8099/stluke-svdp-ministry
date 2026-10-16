@@ -42,15 +42,15 @@
       })();
     </script>
 
-    <!-- ===== Needs Bulletin Board (preview) ===== -->
+    <!-- ===== Recent Activity (preview) ===== -->
     <div class="section">
       <div class="glance-card">
         <div class="fund-label" id="glance-label">This Month, At a Glance</div>
         <div class="snapshot-sentence" id="snapshot-sentence"></div>
       </div>
-      <div class="section-label board-label">Home Visit Bulletin Board</div>
+      <div class="section-label board-label">Recent Activity</div>
       <div class="preview-board" id="preview-board"></div>
-      <div class="board-cta"><a href="board.html">View the full board &rarr;</a></div>
+      <div class="board-cta"><a href="board.html">See all activity &rarr;</a></div>
     </div>
 
     <!-- ===== Next Parish Drive ===== -->
@@ -128,7 +128,7 @@
 
 <script src="site.js"></script>
 <script>
-  const ROTATIONS = [-2, 1.5, -1];
+  const ROTATIONS = [-2, 1.5, -1, 2, -1.5];
   let claimed = new Set();
 
   function toast(msg) {
@@ -226,6 +226,13 @@ Thank you!`;
 
   let NEEDS_CACHE = [];
 
+  // A single recency strip — most recent visits first, Open and Covered
+  // mixed together (same ordering as the full board). No separate "drill
+  // into the archive" step: this already is the whole Recent Activity
+  // picture, just truncated to a handful of cards; "See all activity"
+  // simply goes to the full, unfiltered list on board.html.
+  const PREVIEW_COUNT = 5;
+
   function renderPreview(allNeeds) {
     NEEDS_CACHE = allNeeds;
     const visible = visibleNeeds(allNeeds);
@@ -233,7 +240,7 @@ Thank you!`;
 
     const el = document.getElementById('preview-board');
     el.innerHTML = '';
-    sorted.slice(0, 3).forEach((need, i) => {
+    sorted.slice(0, PREVIEW_COUNT).forEach((need, i) => {
       const wrap = document.createElement('div');
       wrap.className = 'card-wrap';
       wrap.style.transform = `rotate(${ROTATIONS[i % ROTATIONS.length]}deg)`;

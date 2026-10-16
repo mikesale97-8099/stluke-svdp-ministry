@@ -616,3 +616,4 @@ function showFallbackWarningIfNeeded() {
   el.textContent = 'Showing sample placeholder data — the live Google Sheet failed to load. Check NEEDS_CSV_URL / RESULTS_CSV_URL in site.js, and your browser console for the specific error.';
   document.body.prepend(el);
 }
+
