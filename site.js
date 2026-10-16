@@ -448,8 +448,8 @@ function coveredDateISO(need) {
 // Open/Partially Covered/Unknown needs always show, regardless of age —
 // they're still unresolved. A Covered need shows for RECENT_ACTIVITY_DAYS
 // after it was covered, then rolls off the live board (it's still visible
-// in the Recent Activity section below, on the same window). Closed needs
-// never show at all — not on the board, not in Recent Activity.
+// in the Activity Archive section below, on the same window). Closed needs
+// never show at all — not on the board, not in the archive.
 function visibleNeeds(needs) {
   const cutoff = isoDaysAgo(RECENT_ACTIVITY_DAYS);
   return needs.filter(n => {
@@ -461,7 +461,8 @@ function visibleNeeds(needs) {
   });
 }
 
-// Powers the "Recent Activity" section: every need marked Covered within
+// Powers the "Activity Archive" section (board.html) and the homepage's
+// "Recent Activity" preview feed alike: every need marked Covered within
 // the same RECENT_ACTIVITY_DAYS rolling window used above — a running,
 // no-names record of lives this parish has touched lately. Intentionally
 // the same window as visibleNeeds()'s Covered cutoff (so a Covered card
