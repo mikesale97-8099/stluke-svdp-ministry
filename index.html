@@ -53,8 +53,8 @@
       <div class="board-cta"><a href="board.html">See all activity &rarr;</a></div>
     </div>
 
-    <!-- ===== Next Parish Drive ===== -->
-    <div class="section">
+    <!-- ===== Next Parish Drive (toggle with SHOW_NEXT_DRIVE in site.js) ===== -->
+    <div class="section" id="next-drive-section">
       <div class="section-label">Our Next SVdP Parish Drive</div>
       <div class="drive-card">
         <div class="drive-eyebrow">Coming in 2027!</div>
@@ -315,6 +315,10 @@ Thank you!`;
   }
 
   async function init() {
+    if (!SHOW_NEXT_DRIVE) {
+      const drive = document.getElementById('next-drive-section');
+      if (drive) drive.style.display = 'none';
+    }
     const needs = await loadNeeds();
     const results = await loadResults();
     renderPreview(needs);

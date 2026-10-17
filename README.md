@@ -149,3 +149,8 @@ The heading (e.g. "August Home Visits — At a Glance (8/16/26)") comes from `mo
 3. **Year-to-date:** families and people helped so far in the current year — both simple sums of `families_helped` and `people_helped` across the year's Results rows. Summing `families_helped` across months is safe (no double-counting) because the workbook already counts each family only once, in the month its first request was covered — see the Results-tab note above.
 
 The workbook's **Balance Snapshot** tab (`snapshot_date | funds_available`, with `outstanding_needs`, `assistance_provided_this_month`, and `available_balance` computed by formula from the Needs tab's Date Covered columns — see the workbook's Instructions tab) still exists and can still be published as CSV, but the site doesn't currently read it. It's what a future funds-tracking version would plug back into `LEDGER_CSV_URL` in `site.js`.
+
+
+## Hiding the "Next Parish Drive" section
+
+`SHOW_NEXT_DRIVE` in `site.js` toggles the homepage's "Our Next SVdP Parish Drive" card. Currently `false` (hidden); set to `true` to show it again — the card's text lives in `index.html` (`#next-drive-section`) and is left intact.

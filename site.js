@@ -8,6 +8,10 @@ const NEEDS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSj
 const RESULTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=1395629985&single=true&output=csv";
 const LEDGER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE43bQSjQhyQKSZDIEQaHx54j3T0GPimqq4vTOdjZQfxL1LLI8OsfeAlMSCT6DIVGMEgDrJjjRXgH8/pub?gid=1825093622&single=true&output=csv"; // published CSV of the "Balance Snapshot" tab — NOT currently loaded by either page (see the money/donations note below); left here so it's a one-line change to bring back
 
+// Homepage "Our Next SVdP Parish Drive" section: set to true to show it,
+// false to hide it (e.g. between drives, or while details are still TBD).
+const SHOW_NEXT_DRIVE = false;
+
 // The parish gives our conference a monthly operating allowance and has
 // asked ministries not to fundraise independently (it creates competition
 // with the parish's own giving/operating budget), so the site does not
