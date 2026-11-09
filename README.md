@@ -153,7 +153,7 @@ The workbook's **Balance Snapshot** tab (`snapshot_date | funds_available`, with
 
 ## Hiding the "Next Parish Drive" section
 
-`SHOW_NEXT_DRIVE` in `site.js` toggles the homepage's "Our Next SVdP Parish Drive" card. Currently `false` (hidden); set to `true` to show it again — the card's text lives in `index.html` (`#next-drive-section`) and is left intact.
+`SHOW_NEXT_DRIVE` in `index.html`'s script block toggles the homepage's "Our Next SVdP Parish Drive" card. Currently `false` (hidden); set to `true` to show it again — the card's text lives in `index.html` (`#next-drive-section`) and is left intact.
 
 
 ## Homepage "Who We Are & What We Do" text
@@ -163,4 +163,4 @@ The collapsible mission block at the top of `index.html` (`#mission-details`) no
 
 ## Homepage toggles & Give block
 
-`SHOW_NEXT_DRIVE` and `SHOW_RESULTS_TABLE` in `site.js` show/hide the "Our Next SVdP Parish Drive" card and the "Home Visit Results" table (both currently `false`; their markup stays in `index.html`). A "How Can I Give" card sits right after Recent Activity — plain text pointing to the giving page on the St. Luke website, no dollar amounts or direct payment link.
+`SHOW_NEXT_DRIVE` and `SHOW_RESULTS_TABLE` (top of `index.html`'s script block — kept in the page itself so they work regardless of other files) show/hide the "Our Next SVdP Parish Drive" card and the "Home Visit Results" table (both currently `false`; their markup stays in `index.html`). A "How Can I Give" card sits right after Recent Activity — plain text pointing to the giving page on the St. Luke website, no dollar amounts or direct payment link.

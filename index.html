@@ -7,6 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+  .page-index .give-card {
+    max-width: 560px; margin: 0 auto; padding: 22px 24px; background: var(--paper);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  }
+  .page-index .give-card p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--inktext); text-align: left; }
+</style>
 </head>
 <body class="page-index">
   <div class="container">
@@ -61,7 +68,7 @@
       </div>
     </div>
 
-    <!-- ===== Next Parish Drive (toggle with SHOW_NEXT_DRIVE in site.js) ===== -->
+    <!-- ===== Next Parish Drive (toggle with SHOW_NEXT_DRIVE in this file's script) ===== -->
     <div class="section" id="next-drive-section">
       <div class="section-label">Our Next SVdP Parish Drive</div>
       <div class="drive-card">
@@ -71,7 +78,7 @@
       </div>
     </div>
 
-    <!-- ===== Home Visit Results (toggle with SHOW_RESULTS_TABLE in site.js) ===== -->
+    <!-- ===== Home Visit Results (toggle with SHOW_RESULTS_TABLE in this file's script) ===== -->
     <div class="section" id="results-section">
       <div class="section-label">Home Visit Results</div>
       <div class="table-card">
@@ -136,6 +143,10 @@
 
 <script src="site.js"></script>
 <script>
+  // ---- Section toggles: true = show, false = hide completely (title + content) ----
+  const SHOW_NEXT_DRIVE = false;    // "Our Next SVdP Parish Drive"
+  const SHOW_RESULTS_TABLE = false; // "Home Visit Results"
+
   const ROTATIONS = [-2, 1.5, -1, 2, -1.5];
   let claimed = new Set();
 
