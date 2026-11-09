@@ -53,6 +53,14 @@
       <div class="board-cta"><a href="board.html">See all activity &rarr;</a></div>
     </div>
 
+    <!-- ===== How Can I Give ===== -->
+    <div class="section" id="give-section">
+      <div class="section-label">How Can I Give</div>
+      <div class="give-card">
+        <p>As announced by Father Joe, you may now contribute on-line for the benefit of St. Vincent de Paul at St. Luke through our link on the dropdown menu on the giving page in the St. Luke website. Your contributions will support St. Vincent de Paul ministries to the poor, including a special focus on helping our neighbors in need in the St. Luke parish area avoid eviction and utility disconnection.</p>
+      </div>
+    </div>
+
     <!-- ===== Next Parish Drive (toggle with SHOW_NEXT_DRIVE in site.js) ===== -->
     <div class="section" id="next-drive-section">
       <div class="section-label">Our Next SVdP Parish Drive</div>
@@ -63,8 +71,8 @@
       </div>
     </div>
 
-    <!-- ===== Home Visit Results ===== -->
-    <div class="section">
+    <!-- ===== Home Visit Results (toggle with SHOW_RESULTS_TABLE in site.js) ===== -->
+    <div class="section" id="results-section">
       <div class="section-label">Home Visit Results</div>
       <div class="table-card">
         <table>
@@ -315,6 +323,10 @@ Thank you!`;
   }
 
   async function init() {
+    if (!SHOW_RESULTS_TABLE) {
+      const res = document.getElementById('results-section');
+      if (res) res.style.display = 'none';
+    }
     if (!SHOW_NEXT_DRIVE) {
       const drive = document.getElementById('next-drive-section');
       if (drive) drive.style.display = 'none';
