@@ -655,8 +655,8 @@ function showFallbackWarningIfNeeded() {
 // no personal data. To keep your OWN visits out of the count, open the
 // site once with ?me=1 on each device (undo with ?me=0).
 // ------------------------------------------------------------
-const VISIT_COUNTER_URL = '';   // paste Apps Script web app URL (ends in /exec)
-const VISIT_COUNTER_KEY = '';   // must match SECRET in the Apps Script
+const VISIT_COUNTER_URL = 'https://script.google.com/macros/s/AKfycbyg6KJPWAC3oDRx81cyA141UrHeuXEibkQU4-RWUXEWsIOmlmxmBOu4gAsr4S_-jL3VGQ/exec';   // paste Apps Script web app URL (ends in /exec)
+const VISIT_COUNTER_KEY = 'oakleydog';   // must match SECRET in the Apps Script
 
 function logVisit() {
   if (!VISIT_COUNTER_URL) return;
