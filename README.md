@@ -1,6 +1,6 @@
 # St. Luke SVdP Conference — Site Mockup
 
-Four files, no build step required:
+Four files, no build step required TEST:
 
 - `index.html` — the main content page (mission, needs preview, next drive, home visit results, campaigns, sister conferences, volunteer CTA) — this is what a QR code on a bulletin flyer should point to
 - `board.html` — the dedicated, fully-interactive Home Visit Bulletin Board sub-page (filters + "I can help" claim interaction). Linked to from index.html's needs preview section.
