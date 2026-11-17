@@ -164,3 +164,15 @@ The collapsible mission block at the top of `index.html` (`#mission-details`) no
 ## Homepage toggles & Give block
 
 `SHOW_NEXT_DRIVE` and `SHOW_RESULTS_TABLE` (top of `index.html`'s script block — kept in the page itself so they work regardless of other files) show/hide the "Our Next SVdP Parish Drive" card and the "Home Visit Results" table (both currently `false`; their markup stays in `index.html`). A "How Can I Give" card sits right after Recent Activity — text pointing to the giving page on the St. Luke website, plus a "Give →" button that opens the parish's online giving form (Fellowship One) in a new tab. No dollar amounts anywhere on the site; payment happens entirely on the parish's giving platform, not here.
+
+
+## Visit counter (Visits tab + Results column)
+
+Optional, and off until configured. `logVisit()` at the bottom of `site.js` sends one hit per page per browser session to a Google Apps Script web app, which appends a row to a `Visits` tab in the workbook (columns: Timestamp, Month `yyyy-MM`, Page, Ref). No IPs, cookies or personal data.
+
+**Setup:** follow the header comment in `sheet-setup/visit-counter.gs` (paste into Extensions -> Apps Script, set `SECRET`, deploy as Web app / Anyone), then paste the `/exec` URL and the same secret into `VISIT_COUNTER_URL` / `VISIT_COUNTER_KEY` in `site.js`. Re-deploying a *new version* is required after any later script edit.
+
+**Results tab column:** add a column headed e.g. `Site Visits` (the site ignores columns it doesn't use) with, for the row whose `month_key` is in A2 (adjust the cell):
+`=COUNTIFS(Visits!B:B, A2)` — all pages, or add `, Visits!C:C, "index"` for home-page-only (pages are `index`, `board`, `volunteer`). Bulletin-QR visits: add `, Visits!D:D, "bulletin"` and point the QR code at `.../?ref=bulletin`.
+
+**Caveats:** counts are page-visits per browser session, not unique people; bots and ad-blocker users skew them slightly; the web app URL is public (the key is only a speed bump), so a junk row is possible. Exclude your own devices by opening the site once with `?me=1`.

@@ -644,3 +644,37 @@ function showFallbackWarningIfNeeded() {
   document.body.prepend(el);
 }
 
+
+
+// ------------------------------------------------------------
+// Visit counter — logs one hit per page per browser session to the
+// "Visits" tab of the Google Sheet via an Apps Script web app (see
+// sheet-setup/visit-counter.gs and the README). Does nothing until
+// VISIT_COUNTER_URL is filled in. Sends only: page name, optional ?ref=
+// tag (e.g. the bulletin QR link), and a shared key. No IP, no cookies,
+// no personal data. To keep your OWN visits out of the count, open the
+// site once with ?me=1 on each device (undo with ?me=0).
+// ------------------------------------------------------------
+const VISIT_COUNTER_URL = '';   // paste Apps Script web app URL (ends in /exec)
+const VISIT_COUNTER_KEY = '';   // must match SECRET in the Apps Script
+
+function logVisit() {
+  if (!VISIT_COUNTER_URL) return;
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('me') === '1') localStorage.setItem('svdp_skip_count', '1');
+    if (q.get('me') === '0') localStorage.removeItem('svdp_skip_count');
+    if (localStorage.getItem('svdp_skip_count')) return;
+
+    const page = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '') || 'index';
+    const key = 'svdp_counted_' + page;
+    if (sessionStorage.getItem(key)) return; // already counted this session
+    sessionStorage.setItem(key, '1');
+
+    const url = VISIT_COUNTER_URL + '?k=' + encodeURIComponent(VISIT_COUNTER_KEY) +
+      '&page=' + encodeURIComponent(page) +
+      '&ref=' + encodeURIComponent(q.get('ref') || '');
+    fetch(url, { mode: 'no-cors', keepalive: true }).catch(() => {});
+  } catch (e) { /* counting must never break the page */ }
+}
+logVisit();
